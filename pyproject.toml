@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "ds-ai-job-market-analysis"
+version = "0.1.0"
+description = "DS/AI job market analysis dashboard"
+authors = ["Andres Vourakis <aefvvelasquez@gmail.com>"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.10"
+streamlit = "^1.28.0"
+pandas = "^2.0.0"
+plotly = "^5.17.0"
+nltk = "^3.8"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
