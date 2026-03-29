@@ -5,7 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from pathlib import Path
 from datetime import datetime
-from analyse_job_market import keyword_groups, keyword_categories, extract_skills_with_lemmatization, clean_data
+from analyse_job_market import keyword_groups, keyword_categories, extract_skills_per_job, clean_data
 
 st.set_page_config(page_title="DS/AI Job Market Analysis", layout="wide")
 
@@ -128,25 +128,13 @@ with tab1:
 with tab2:
     st.header("Skill Requirements Analysis")
 
-    # Extract skills from descriptions using keyword groups with lemmatization
+    # Extract skills from descriptions using keyword groups
     @st.cache_data
     def cached_extract_skills(descriptions, groups):
-        return extract_skills_with_lemmatization(descriptions, groups)
+        return extract_skills_per_job(descriptions, groups)
 
-    skill_counts = cached_extract_skills(df['description'].tolist(), keyword_groups)
-
-    # Calculate jobs with at least one skill detected
-    @st.cache_data
-    def count_jobs_with_skills(descriptions, groups):
-        jobs_with_skills = 0
-        for desc in descriptions:
-            if desc and desc.strip():
-                job_skills = extract_skills_with_lemmatization([desc], groups)
-                if job_skills and sum(job_skills.values()) > 0:
-                    jobs_with_skills += 1
-        return jobs_with_skills
-
-    jobs_with_skills = count_jobs_with_skills(df['description'].tolist(), keyword_groups)
+    skill_counts, per_job_skills = cached_extract_skills(df['description'].tolist(), keyword_groups)
+    jobs_with_skills = sum(1 for skills in per_job_skills if skills)
 
     # Display metrics
     col1, col2, col3 = st.columns(3)
