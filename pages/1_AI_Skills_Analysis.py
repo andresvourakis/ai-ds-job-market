@@ -260,12 +260,12 @@ with col1:
     st.metric("Total Jobs", len(df))
 with col2:
     pct_ai = (len(ai_jobs_df) / len(df) * 100) if len(df) > 0 else 0
-    st.metric("Jobs with AI Keywords", len(ai_jobs_df), f"{pct_ai:.1f}% of total jobs", delta_color="off", delta_arrow="off")
+    st.metric("Jobs with AI Keywords", len(ai_jobs_df), f"{pct_ai:.0f}% of total jobs", delta_color="off", delta_arrow="off")
 
 with col3:
     ai_jobs_specific_df = ai_jobs_df[ai_jobs_df['ai_skills'].apply(lambda skills: any(s != 'AI' for s in skills))]
     pct_ai_specific = (len(ai_jobs_specific_df) / len(df) * 100) if len(df) > 0 else 0
-    st.metric("Jobs with AI Skills", len(ai_jobs_specific_df), f"{pct_ai_specific:.1f}% of total jobs", delta_color="off", delta_arrow="off")
+    st.metric("Jobs with AI Skills", len(ai_jobs_specific_df), f"{pct_ai_specific:.0f}% of total jobs", delta_color="off", delta_arrow="off")
 
 with col4:
     ai_skill_counts = {skill: skill_counts.get(skill, 0) for skill in ai_skills if skill != 'AI'}
