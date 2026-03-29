@@ -246,10 +246,82 @@ def process_data(jobs_df):
 
     return jobs_df
 
+def _build_skill_regex(keyword_groups):
+    """
+    Pre-compile a single regex and lookup table for all skill matching.
+    Includes both original and lemmatized forms for each keyword variation.
+
+    Returns:
+        (compiled_regex, form_to_canonical) where form_to_canonical maps
+        each lowercased matched form to its canonical skill name.
+    """
+    form_to_canonical = {}
+    all_forms = []
+
+    for group in keyword_groups:
+        canonical_name = group[0]
+        # Skip single-letter skills to avoid false matches
+        if len(canonical_name) <= 1:
+            continue
+
+        for keyword in group:
+            lower = keyword.lower()
+            lemmatized = ' '.join([lemmatizer.lemmatize(w.lower()) for w in keyword.split()])
+            for form in (lower, lemmatized):
+                if form not in form_to_canonical:
+                    form_to_canonical[form] = canonical_name
+                    all_forms.append(form)
+
+    # Sort longest first so regex matches longer variants before shorter ones
+    all_forms.sort(key=len, reverse=True)
+    pattern = re.compile(
+        r'\b(?:' + '|'.join(re.escape(f) for f in all_forms) + r')\b',
+        re.IGNORECASE
+    )
+    return pattern, form_to_canonical
+
+# Pre-compile at module load (runs once)
+_skill_regex, _form_to_canonical = _build_skill_regex(keyword_groups)
+
+
+def extract_skills_per_job(descriptions, keyword_groups):
+    """
+    Extract skills from job descriptions using a single pre-compiled regex.
+    Returns both per-job skill sets and aggregate counts in a single pass.
+
+    Args:
+        descriptions: List of job description strings
+        keyword_groups: List of tuples containing keyword variations
+
+    Returns:
+        (skill_counts, per_job_skills) where:
+        - skill_counts: Counter with aggregate skill frequencies
+        - per_job_skills: List of sets, one per description, with canonical skill names
+    """
+    skill_counts = Counter()
+    per_job_skills = []
+
+    for desc in descriptions:
+        if not desc or desc == '':
+            per_job_skills.append(set())
+            continue
+
+        # Replace hyphens/slashes with spaces so "AI-powered" and "AI/ML" match
+        normalized = re.sub(r'[-/]', ' ', desc)
+        matches = _skill_regex.findall(normalized)
+        found_skills = set(_form_to_canonical[m.lower()] for m in matches)
+
+        per_job_skills.append(found_skills)
+        for skill in found_skills:
+            skill_counts[skill] += 1
+
+    return skill_counts, per_job_skills
+
+
 def extract_skills_with_lemmatization(descriptions, keyword_groups):
     """
-    Extract skills from job descriptions using lemmatized keyword matching.
-    More robust than simple string matching as it handles word variations.
+    Extract skills from job descriptions using regex-based keyword matching.
+    Handles word variations by matching both original and lemmatized forms.
 
     Args:
         descriptions: List of job description strings
@@ -258,54 +330,5 @@ def extract_skills_with_lemmatization(descriptions, keyword_groups):
     Returns:
         Counter object with skill frequencies
     """
-    # Build a lookup of lemmatized keywords to canonical names
-    keyword_lookup = {}
-    for group in keyword_groups:
-        canonical_name = group[0]
-        # Skip single-letter skills to avoid false matches
-        if len(canonical_name) <= 1:
-            continue
-
-        for keyword in group:
-            # Lemmatize multi-word keywords as a single unit
-            lemmatized = ' '.join([lemmatizer.lemmatize(word.lower()) for word in keyword.split()])
-            keyword_lookup[lemmatized] = canonical_name
-
-    skill_counts = Counter()
-    for desc in descriptions:
-        if not desc or desc == '':
-            continue
-
-        # Tokenize description into words, preserving multi-word phrases
-        # Split on whitespace and punctuation but keep word boundaries
-        raw_words = re.findall(r'\b[\w\-/]+\b', desc.lower())
-
-        # Further split on hyphens and slashes to catch terms like "AI-powered" or "AI/ML"
-        words = []
-        for word in raw_words:
-            # Split on hyphens and slashes
-            parts = re.split(r'[-/]', word)
-            words.extend([p for p in parts if p])  # Add non-empty parts
-
-        # Track which skills have been found in this description (to count once per job)
-        found_skills = set()
-
-        # Check single words
-        for word in words:
-            lemmatized_word = lemmatizer.lemmatize(word)
-            if lemmatized_word in keyword_lookup:
-                found_skills.add(keyword_lookup[lemmatized_word])
-
-        # Check multi-word phrases (2-5 words)
-        for n in range(2, 6):
-            for i in range(len(words) - n + 1):
-                phrase = ' '.join(words[i:i+n])
-                lemmatized_phrase = ' '.join([lemmatizer.lemmatize(w) for w in phrase.split()])
-                if lemmatized_phrase in keyword_lookup:
-                    found_skills.add(keyword_lookup[lemmatized_phrase])
-
-        # Increment counts for all found skills
-        for skill in found_skills:
-            skill_counts[skill] += 1
-
+    skill_counts, _ = extract_skills_per_job(descriptions, keyword_groups)
     return skill_counts
