@@ -270,7 +270,8 @@ with col3:
 with col4:
     ai_skill_counts = {skill: skill_counts.get(skill, 0) for skill in ai_skills if skill != 'AI'}
     top_ai_skill = max(ai_skill_counts.items(), key=lambda x: x[1]) if ai_skill_counts else ("N/A", 0)
-    st.metric("Top AI Skill", top_ai_skill[0], f"in {top_ai_skill[1]} jobs", delta_color="off", delta_arrow="off")
+    top_ai_pct = (top_ai_skill[1] / len(df) * 100) if len(df) > 0 else 0
+    st.metric("Top AI Skill", top_ai_skill[0], f"in {top_ai_pct:.0f}% of jobs", delta_color="off", delta_arrow="off")
 
 with col5:
     avg_ai_skills = ai_jobs_df['ai_skill_count'].mean() if len(ai_jobs_df) > 0 else 0
