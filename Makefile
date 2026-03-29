@@ -2,4 +2,4 @@ install:
 	poetry install
 
 run:
-	streamlit run app.py
+	poetry run streamlit run app.py
