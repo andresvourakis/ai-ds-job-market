@@ -8,7 +8,7 @@ from collections import Counter
 import re
 import sys
 sys.path.append(str(Path(__file__).parent.parent))
-from analyse_job_market import keyword_groups, keyword_categories, extract_skills_with_lemmatization, clean_data
+from analyse_job_market import keyword_groups, keyword_categories, extract_skills_per_job, clean_data
 
 def highlight_skills_in_text(text, found_skills):
     """
@@ -227,41 +227,26 @@ df = process_jobs(jobs, _version=4)
 # Apply deduplication using semantic matching (title + company + description prefix)
 df = clean_data(df)
 
-# Extract all skills
+# Extract all skills (aggregate + per-job) in a single pass
 @st.cache_data
 def cached_extract_skills(descriptions, groups):
-    return extract_skills_with_lemmatization(descriptions, groups)
+    return extract_skills_per_job(descriptions, groups)
 
-skill_counts = cached_extract_skills(df['description'].tolist(), keyword_groups)
+skill_counts, per_job_skills = cached_extract_skills(df['description'].tolist(), keyword_groups)
 
 # Get AI skills from keyword_categories
 ai_skills = keyword_categories.get("Artificial Intelligence", [])
+ai_skills_set = set(ai_skills)
 
-# Filter jobs that have at least one AI skill
-@st.cache_data
-def get_ai_jobs(df_input, ai_skill_list, groups, _version=3):
-    ai_job_indices = []
-    ai_job_skills = {}
-    
-    # Iterate using DataFrame index to maintain correct mapping
-    for idx in df_input.index:
-        desc = df_input.loc[idx, 'description']
-        if not desc or desc == '':
-            continue
-        
-        job_skills = extract_skills_with_lemmatization([desc], groups)
-        
-        # Check if job has any AI skills
-        ai_skills_found = [skill for skill in ai_skill_list if job_skills.get(skill, 0) > 0]
-        if ai_skills_found:
-            ai_job_indices.append(idx)
-            ai_job_skills[idx] = ai_skills_found
-    
-    return ai_job_indices, ai_job_skills
-
-ai_job_indices, ai_job_skills = get_ai_jobs(
-    df, ai_skills, keyword_groups, _version=4
-)
+# Filter jobs that have at least one AI skill using per-job results
+ai_job_indices = []
+ai_job_skills = {}
+for i, idx in enumerate(df.index):
+    job_skills = per_job_skills[i]
+    ai_skills_found = [s for s in job_skills if s in ai_skills_set]
+    if ai_skills_found:
+        ai_job_indices.append(idx)
+        ai_job_skills[idx] = ai_skills_found
 
 ai_jobs_df = df.loc[ai_job_indices].copy()
 ai_jobs_df['ai_skills'] = ai_jobs_df.index.map(lambda idx: ai_job_skills.get(idx, []))
@@ -800,43 +785,52 @@ if len(filtered_jobs) > 0:
     if event.selection and len(event.selection.rows) > 0:
         selected_row_idx = event.selection.rows[0]
         selected_row = filtered_jobs.iloc[selected_row_idx]
-        
-        # Add job detail viewer
+
         st.markdown("---")
         st.subheader("Job Details")
-        
-        # Show job details
-        st.markdown(f"### {selected_row['title']}")
-        st.markdown(f"**Company:** {selected_row['company_name']} | **Location:** {selected_row['location']}")
-        
-        # Add clickable links from apply options
-        if selected_row['apply_options'] and len(selected_row['apply_options']) > 0:
-            st.markdown("**Apply via:**")
-            for option in selected_row['apply_options']:
-                if 'link' in option and 'title' in option:
-                    st.markdown(f"- **[{option['title']}]({option['link']})**")
-        elif selected_row['share_link']:
-            st.markdown(f"🔗 **[View Job Posting]({selected_row['share_link']})**")
-        
+
+        # Job overview card
+        with st.container(border=True):
+            st.markdown(f"### {selected_row['title']}")
+
+            col_a, col_b, col_c = st.columns(3)
+            with col_a:
+                st.markdown(f"**Company**  \n{selected_row['company_name']}")
+            with col_b:
+                st.markdown(f"**Location**  \n{selected_row['location']}")
+            with col_c:
+                salary = selected_row.get('salary', 'N/A')
+                if salary and salary != 'N/A':
+                    st.markdown(f"**Salary**  \n{salary}")
+                else:
+                    st.markdown(f"**AI Skills**  \n{selected_row['ai_skill_count']} detected")
+
+            # Apply links
+            if selected_row['apply_options'] and len(selected_row['apply_options']) > 0:
+                links = [f"[{opt['title']}]({opt['link']})" for opt in selected_row['apply_options'] if 'link' in opt and 'title' in opt]
+                if links:
+                    st.markdown("**Apply via:** " + " | ".join(links))
+            elif selected_row['share_link']:
+                st.markdown(f"**[View Job Posting]({selected_row['share_link']})**")
+
+        # AI skills and description side by side
         col1, col2 = st.columns([1, 3])
-        
+
         with col1:
-            st.markdown("**AI Skills Found:**")
-            for skill in selected_row['ai_skills']:
-                st.markdown(f"- {skill}")
-            st.markdown(f"**Total AI Skills:** {selected_row['ai_skill_count']}")
-        
+            with st.container(border=True):
+                st.markdown("**AI Skills Found**")
+                for skill in selected_row['ai_skills']:
+                    st.markdown(f"- {skill}")
+
         with col2:
-            st.markdown("**Job Description:**")
-            
-            # Highlight AI skills in description using word boundaries
-            description = selected_row['description']
-            highlighted_desc = highlight_skills_in_text(description, selected_row['ai_skills'])
-            
-            # Preserve line breaks by replacing single newlines with Markdown line breaks
-            highlighted_desc = highlighted_desc.replace('\n', '  \n')
-            
-            st.markdown(highlighted_desc)
+            with st.container(border=True):
+                st.markdown("**Job Description**")
+
+                description = selected_row['description']
+                highlighted_desc = highlight_skills_in_text(description, selected_row['ai_skills'])
+                highlighted_desc = highlighted_desc.replace('\n', '  \n')
+
+                st.markdown(highlighted_desc)
     else:
         st.info("Click on any row in the table above to view full job details with highlighted AI skills")
 else:
