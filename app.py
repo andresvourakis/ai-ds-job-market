@@ -204,37 +204,23 @@ all_df = clean_data(all_df)
 # Date range filter
 df_with_valid_dates = all_df[all_df['posted_at_date'].notna()]
 if len(df_with_valid_dates) > 0:
-    min_date = df_with_valid_dates['posted_at_date'].min().date()
-    max_date = df_with_valid_dates['posted_at_date'].max().date()
+    months = df_with_valid_dates['posted_at_date'].dt.to_period('M').unique().sort_values()
+    month_labels = ["All"] + [m.strftime('%b %Y') for m in months]
 
-    filter_col1, filter_col2 = st.columns([1, 3])
-    with filter_col1:
-        date_range = st.date_input(
-            "Filter by posting date",
-            value=(min_date, max_date),
-            min_value=min_date,
-            max_value=max_date,
+    selected_month = st.pills("📅 Filter by posting month", month_labels, default="All")
+
+    if selected_month and selected_month != "All":
+        selected_period = pd.Period(selected_month, freq='M')
+        dated_mask = (
+            (all_df['posted_at_date'].notna()) &
+            (all_df['posted_at_date'].dt.to_period('M') == selected_period)
         )
-
-    if isinstance(date_range, tuple) and len(date_range) == 2:
-        start_date, end_date = date_range
-        is_full_range = (start_date == min_date and end_date == max_date)
-        if is_full_range:
-            df = all_df
-        else:
-            dated_mask = (
-                (all_df['posted_at_date'].notna()) &
-                (all_df['posted_at_date'].dt.date >= start_date) &
-                (all_df['posted_at_date'].dt.date <= end_date)
-            )
-            df = all_df[dated_mask]
+        df = all_df[dated_mask]
+        st.caption(f"Showing {len(df)} of {len(all_df)} jobs for {selected_month}. Jobs without posting dates are excluded when filtering.")
     else:
         df = all_df
 else:
     df = all_df
-
-if not (len(df) == len(all_df)):
-    st.caption(f"Showing {len(df)} of {len(all_df)} jobs. Jobs without posting dates are excluded when filtering by date.")
 
 # Extract skills once for the entire app
 @st.cache_data
