@@ -278,27 +278,59 @@ with tab1:
             lambda row: f"{row['Skill']} ({row['Percentage']}%)", axis=1
         )
 
-        fig = px.bar(
-            ai_skills_df,
-            x='Frequency',
-            y='Skill',
-            orientation='h',
-            title='Top 10 AI Skills in Data Science Jobs (% of all jobs)',
-            labels={'Frequency': 'Number of Job Postings'},
-            color='Frequency',
-            color_continuous_scale=[[0, '#D9E5F1'], [0.5, '#6B88A8'], [1, '#2E4A6B']],
-            text='Percentage'
+        all_skills_df = pd.DataFrame(
+            skill_counts.most_common(20),
+            columns=['Skill', 'Frequency']
         )
-        fig.update_traces(texttemplate='%{text}%', textposition='outside')
-        fig.update_layout(
-            yaxis={'categoryorder': 'total ascending', 'tickfont': dict(color='#1F2937', size=12), 'title_font': dict(color='#1F2937', size=13)},
-            height=500,
-            title_font_size=20,
-            font=dict(color='#1F2937', size=12),
-            xaxis=dict(tickfont=dict(color='#1F2937', size=12), title_font=dict(color='#1F2937', size=13)),
-            coloraxis_showscale=False
-        )
-        st.plotly_chart(fig, use_container_width=True)
+        all_skills_df['Percentage'] = (all_skills_df['Frequency'] / len(df) * 100).round(1)
+
+        chart_col1, chart_col2 = st.columns(2, gap="medium")
+
+        with chart_col1:
+            fig = px.bar(
+                ai_skills_df,
+                x='Frequency',
+                y='Skill',
+                orientation='h',
+                title='Top 10 AI Skills in Data Science Jobs (% of all jobs)',
+                labels={'Frequency': 'Number of Job Postings'},
+                color='Frequency',
+                color_continuous_scale=[[0, '#D9E5F1'], [0.5, '#6B88A8'], [1, '#2E4A6B']],
+                text='Percentage'
+            )
+            fig.update_traces(texttemplate='%{text}%', textposition='outside')
+            fig.update_layout(
+                yaxis={'categoryorder': 'total ascending', 'tickfont': dict(color='#1F2937', size=12), 'title_font': dict(color='#1F2937', size=13)},
+                height=500,
+                title_font_size=20,
+                font=dict(color='#1F2937', size=12),
+                xaxis=dict(tickfont=dict(color='#1F2937', size=12), title_font=dict(color='#1F2937', size=13)),
+                coloraxis_showscale=False
+            )
+            st.plotly_chart(fig, use_container_width=True)
+
+        with chart_col2:
+            fig = px.bar(
+                all_skills_df,
+                x='Frequency',
+                y='Skill',
+                orientation='h',
+                title='Top 20 Most Mentioned Skills (% of all jobs)',
+                labels={'Frequency': 'Number of Job Postings'},
+                color='Frequency',
+                color_continuous_scale=[[0, '#D9E5F1'], [0.5, '#6B88A8'], [1, '#2E4A6B']],
+                text='Percentage'
+            )
+            fig.update_traces(texttemplate='%{text}%', textposition='outside')
+            fig.update_layout(
+                yaxis={'categoryorder': 'total ascending', 'tickfont': dict(color='#1F2937', size=12), 'title_font': dict(color='#1F2937', size=13)},
+                height=500,
+                title_font_size=20,
+                font=dict(color='#1F2937', size=12),
+                xaxis=dict(tickfont=dict(color='#1F2937', size=12), title_font=dict(color='#1F2937', size=13)),
+                coloraxis_showscale=False
+            )
+            st.plotly_chart(fig, use_container_width=True)
 
     # Job Titles Requiring AI Skills
     st.header("Job Titles Requiring AI Skills")
@@ -874,34 +906,6 @@ with tab3:
     st.markdown("---")
 
     if skill_counts:
-        skills_df = pd.DataFrame(
-            skill_counts.most_common(20),
-            columns=['Skill', 'Frequency']
-        )
-        skills_df['Percentage'] = (skills_df['Frequency'] / len(df) * 100).round(1)
-
-        fig = px.bar(
-            skills_df,
-            x='Frequency',
-            y='Skill',
-            orientation='h',
-            title='Top 20 Most Mentioned Skills (% of all jobs)',
-            labels={'Frequency': 'Number of Job Postings'},
-            color='Frequency',
-            color_continuous_scale=[[0, '#D9E5F1'], [0.5, '#6B88A8'], [1, '#2E4A6B']],
-            text='Percentage'
-        )
-        fig.update_traces(texttemplate='%{text}%', textposition='outside')
-        fig.update_layout(
-            yaxis={'categoryorder': 'total ascending', 'tickfont': dict(color='#1F2937', size=12), 'title_font': dict(color='#1F2937', size=13)},
-            height=600,
-            title_font_size=20,
-            font=dict(color='#1F2937', size=12),
-            xaxis=dict(tickfont=dict(color='#1F2937', size=12), title_font=dict(color='#1F2937', size=13)),
-            coloraxis_showscale=False
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
         st.subheader("Skills by Category")
 
         category_columns = st.columns(2, gap="medium")
