@@ -590,18 +590,20 @@ if len(jobs_with_salary) >= 20:
 
             with col2:
                 total_ai_salary_jobs = len(jobs_with_salary)
+                pct_ai_salary = (total_ai_salary_jobs / len(ai_jobs_df) * 100) if len(ai_jobs_df) > 0 else 0
                 st.metric(
                     "AI Jobs with Salary Data",
                     total_ai_salary_jobs,
-                    f"of {len(ai_jobs_df)} total"
+                    f"{pct_ai_salary:.0f}% of AI jobs", delta_color="off", delta_arrow="off"
                 )
 
             with col3:
                 total_non_ai_salary_jobs = len(non_ai_with_salary)
+                pct_non_ai_salary = (total_non_ai_salary_jobs / len(non_ai_jobs) * 100) if len(non_ai_jobs) > 0 else 0
                 st.metric(
                     "Non-AI Jobs with Salary Data",
                     total_non_ai_salary_jobs,
-                    f"of {len(non_ai_jobs)} total"
+                    f"{pct_non_ai_salary:.0f}% of non-AI jobs", delta_color="off", delta_arrow="off"
                 )
 
             chart_data = []
