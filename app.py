@@ -254,7 +254,7 @@ with col5:
     avg_ai_skills = ai_jobs_df['ai_skill_count'].mean() if len(ai_jobs_df) > 0 else 0
     st.metric("Avg AI Skills per Job", f"{avg_ai_skills:.1f}")
 
-st.header("Top AI Skills in Demand in Data Science Jobs")
+st.header("Top Skills in Demand in Data Science Jobs")
 
 ai_skill_counts_sorted = sorted(
     [(skill, skill_counts.get(skill, 0)) for skill in ai_skills if skill != 'AI'],
@@ -279,11 +279,11 @@ if ai_skill_counts_sorted:
 
     with chart_col1:
         fig = px.bar(
-            ai_skills_df,
+            all_skills_df,
             x='Frequency',
             y='Skill',
             orientation='h',
-            title='Top 10 AI Skills in Data Science Jobs (% of all jobs)',
+            title='Top 20 Most Mentioned Skills (% of all jobs)',
             labels={'Frequency': 'Number of Job Postings'},
             color='Frequency',
             color_continuous_scale=[[0, '#D9E5F1'], [0.5, '#6B88A8'], [1, '#2E4A6B']],
@@ -302,11 +302,11 @@ if ai_skill_counts_sorted:
 
     with chart_col2:
         fig = px.bar(
-            all_skills_df,
+            ai_skills_df,
             x='Frequency',
             y='Skill',
             orientation='h',
-            title='Top 20 Most Mentioned Skills (% of all jobs)',
+            title='Top 10 AI Skills in Data Science Jobs (% of all jobs)',
             labels={'Frequency': 'Number of Job Postings'},
             color='Frequency',
             color_continuous_scale=[[0, '#D9E5F1'], [0.5, '#6B88A8'], [1, '#2E4A6B']],
