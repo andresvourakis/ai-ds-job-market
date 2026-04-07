@@ -904,18 +904,20 @@ with tab3:
 
         st.subheader("Skills by Category")
 
-        for category, skills in keyword_categories.items():
-            with st.expander(f"{category} ({len(skills)} skills)"):
-                category_counts = {skill: skill_counts.get(skill, 0) for skill in skills if skill_counts.get(skill, 0) > 0}
-                if category_counts:
-                    category_df = pd.DataFrame(
-                        sorted(category_counts.items(), key=lambda x: x[1], reverse=True),
-                        columns=['Skill', 'Frequency']
-                    )
-                    category_df['Percentage'] = (category_df['Frequency'] / len(df) * 100).round(1)
-                    st.dataframe(category_df, use_container_width=True)
-                else:
-                    st.info("No skills from this category detected.")
+        category_columns = st.columns(2, gap="medium")
+        for index, (category, skills) in enumerate(keyword_categories.items()):
+            with category_columns[index % 2]:
+                with st.expander(f"{category} ({len(skills)} skills)"):
+                    category_counts = {skill: skill_counts.get(skill, 0) for skill in skills if skill_counts.get(skill, 0) > 0}
+                    if category_counts:
+                        category_df = pd.DataFrame(
+                            sorted(category_counts.items(), key=lambda x: x[1], reverse=True),
+                            columns=['Skill', 'Frequency']
+                        )
+                        category_df['Percentage'] = (category_df['Frequency'] / len(df) * 100).round(1)
+                        st.dataframe(category_df, use_container_width=True)
+                    else:
+                        st.info("No skills from this category detected.")
 
         st.subheader("All Skills Detected")
         all_skills_df = pd.DataFrame(
