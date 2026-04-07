@@ -233,721 +233,612 @@ ai_jobs_df = df.loc[ai_job_indices].copy()
 ai_jobs_df['ai_skills'] = ai_jobs_df.index.map(lambda idx: ai_job_skills.get(idx, []))
 ai_jobs_df['ai_skill_count'] = ai_jobs_df['ai_skills'].apply(len)
 
-# --- Tabs ---
-tab1, tab2, tab3 = st.tabs(["AI Skills Analysis", "Jobs by Post Date", "Skill Analysis"])
+st.header("Key Metrics")
+col1, col2, col3, col4, col5 = st.columns(5)
 
-# ============================================================
-# Tab 1: AI Skills Analysis
-# ============================================================
-with tab1:
-    # Key Metrics
-    st.header("Key Metrics")
-    col1, col2, col3, col4, col5 = st.columns(5)
+with col1:
+    st.metric("Total Jobs", len(df))
+with col2:
+    pct_ai = (len(ai_jobs_df) / len(df) * 100) if len(df) > 0 else 0
+    st.metric("Jobs with AI Keywords", len(ai_jobs_df), f"{pct_ai:.0f}% of total jobs", delta_color="off", delta_arrow="off")
+with col3:
+    ai_jobs_specific_df = ai_jobs_df[ai_jobs_df['ai_skills'].apply(lambda skills: any(s != 'AI' for s in skills))]
+    pct_ai_specific = (len(ai_jobs_specific_df) / len(df) * 100) if len(df) > 0 else 0
+    st.metric("Jobs with AI Skills", len(ai_jobs_specific_df), f"{pct_ai_specific:.0f}% of total jobs", delta_color="off", delta_arrow="off")
+with col4:
+    ai_skill_counts = {skill: skill_counts.get(skill, 0) for skill in ai_skills if skill != 'AI'}
+    top_ai_skill = max(ai_skill_counts.items(), key=lambda x: x[1]) if ai_skill_counts else ("N/A", 0)
+    top_ai_pct = (top_ai_skill[1] / len(df) * 100) if len(df) > 0 else 0
+    st.metric("Top AI Skill", top_ai_skill[0], f"in {top_ai_pct:.0f}% of jobs", delta_color="off", delta_arrow="off")
+with col5:
+    avg_ai_skills = ai_jobs_df['ai_skill_count'].mean() if len(ai_jobs_df) > 0 else 0
+    st.metric("Avg AI Skills per Job", f"{avg_ai_skills:.1f}")
 
-    with col1:
-        st.metric("Total Jobs", len(df))
-    with col2:
-        pct_ai = (len(ai_jobs_df) / len(df) * 100) if len(df) > 0 else 0
-        st.metric("Jobs with AI Keywords", len(ai_jobs_df), f"{pct_ai:.0f}% of total jobs", delta_color="off", delta_arrow="off")
-    with col3:
-        ai_jobs_specific_df = ai_jobs_df[ai_jobs_df['ai_skills'].apply(lambda skills: any(s != 'AI' for s in skills))]
-        pct_ai_specific = (len(ai_jobs_specific_df) / len(df) * 100) if len(df) > 0 else 0
-        st.metric("Jobs with AI Skills", len(ai_jobs_specific_df), f"{pct_ai_specific:.0f}% of total jobs", delta_color="off", delta_arrow="off")
-    with col4:
-        ai_skill_counts = {skill: skill_counts.get(skill, 0) for skill in ai_skills if skill != 'AI'}
-        top_ai_skill = max(ai_skill_counts.items(), key=lambda x: x[1]) if ai_skill_counts else ("N/A", 0)
-        top_ai_pct = (top_ai_skill[1] / len(df) * 100) if len(df) > 0 else 0
-        st.metric("Top AI Skill", top_ai_skill[0], f"in {top_ai_pct:.0f}% of jobs", delta_color="off", delta_arrow="off")
-    with col5:
-        avg_ai_skills = ai_jobs_df['ai_skill_count'].mean() if len(ai_jobs_df) > 0 else 0
-        st.metric("Avg AI Skills per Job", f"{avg_ai_skills:.1f}")
+st.header("Top AI Skills in Demand in Data Science Jobs")
 
-    # Top AI Skills
-    st.header("Top AI Skills in Demand in Data Science Jobs")
+ai_skill_counts_sorted = sorted(
+    [(skill, skill_counts.get(skill, 0)) for skill in ai_skills if skill != 'AI'],
+    key=lambda x: x[1],
+    reverse=True
+)[:10]
 
-    ai_skill_counts_sorted = sorted(
-        [(skill, skill_counts.get(skill, 0)) for skill in ai_skills if skill != 'AI'],
-        key=lambda x: x[1],
-        reverse=True
-    )[:10]
+if ai_skill_counts_sorted:
+    ai_skills_df = pd.DataFrame(ai_skill_counts_sorted, columns=['Skill', 'Frequency'])
+    ai_skills_df['Percentage'] = (ai_skills_df['Frequency'] / len(df) * 100).round(1)
+    ai_skills_df['Label'] = ai_skills_df.apply(
+        lambda row: f"{row['Skill']} ({row['Percentage']}%)", axis=1
+    )
 
-    if ai_skill_counts_sorted:
-        ai_skills_df = pd.DataFrame(ai_skill_counts_sorted, columns=['Skill', 'Frequency'])
-        ai_skills_df['Percentage'] = (ai_skills_df['Frequency'] / len(df) * 100).round(1)
-        ai_skills_df['Label'] = ai_skills_df.apply(
-            lambda row: f"{row['Skill']} ({row['Percentage']}%)", axis=1
-        )
+    all_skills_df = pd.DataFrame(
+        skill_counts.most_common(20),
+        columns=['Skill', 'Frequency']
+    )
+    all_skills_df['Percentage'] = (all_skills_df['Frequency'] / len(df) * 100).round(1)
 
-        all_skills_df = pd.DataFrame(
-            skill_counts.most_common(20),
-            columns=['Skill', 'Frequency']
-        )
-        all_skills_df['Percentage'] = (all_skills_df['Frequency'] / len(df) * 100).round(1)
+    chart_col1, chart_col2 = st.columns(2, gap="medium")
 
-        chart_col1, chart_col2 = st.columns(2, gap="medium")
-
-        with chart_col1:
-            fig = px.bar(
-                ai_skills_df,
-                x='Frequency',
-                y='Skill',
-                orientation='h',
-                title='Top 10 AI Skills in Data Science Jobs (% of all jobs)',
-                labels={'Frequency': 'Number of Job Postings'},
-                color='Frequency',
-                color_continuous_scale=[[0, '#D9E5F1'], [0.5, '#6B88A8'], [1, '#2E4A6B']],
-                text='Percentage'
-            )
-            fig.update_traces(texttemplate='%{text}%', textposition='outside')
-            fig.update_layout(
-                yaxis={'categoryorder': 'total ascending', 'tickfont': dict(color='#1F2937', size=12), 'title_font': dict(color='#1F2937', size=13)},
-                height=500,
-                title_font_size=20,
-                font=dict(color='#1F2937', size=12),
-                xaxis=dict(tickfont=dict(color='#1F2937', size=12), title_font=dict(color='#1F2937', size=13)),
-                coloraxis_showscale=False
-            )
-            st.plotly_chart(fig, use_container_width=True)
-
-        with chart_col2:
-            fig = px.bar(
-                all_skills_df,
-                x='Frequency',
-                y='Skill',
-                orientation='h',
-                title='Top 20 Most Mentioned Skills (% of all jobs)',
-                labels={'Frequency': 'Number of Job Postings'},
-                color='Frequency',
-                color_continuous_scale=[[0, '#D9E5F1'], [0.5, '#6B88A8'], [1, '#2E4A6B']],
-                text='Percentage'
-            )
-            fig.update_traces(texttemplate='%{text}%', textposition='outside')
-            fig.update_layout(
-                yaxis={'categoryorder': 'total ascending', 'tickfont': dict(color='#1F2937', size=12), 'title_font': dict(color='#1F2937', size=13)},
-                height=500,
-                title_font_size=20,
-                font=dict(color='#1F2937', size=12),
-                xaxis=dict(tickfont=dict(color='#1F2937', size=12), title_font=dict(color='#1F2937', size=13)),
-                coloraxis_showscale=False
-            )
-            st.plotly_chart(fig, use_container_width=True)
-
-    # Job Titles Requiring AI Skills
-    st.header("Job Titles Requiring AI Skills")
-
-    if len(ai_jobs_df) > 0:
-        ai_jobs_df['seniority'], ai_jobs_df['ai_in_title'] = zip(*ai_jobs_df['title'].apply(normalize_job_title))
-
-        # Chart 1: Group by Seniority Level
-        st.subheader("By Seniority Level")
-        seniority_counts = ai_jobs_df['seniority'].value_counts()
-        seniority_df = pd.DataFrame({
-            'Seniority': seniority_counts.index,
-            'Frequency': seniority_counts.values
-        })
-        seniority_df['Percentage'] = (seniority_df['Frequency'] / len(ai_jobs_df) * 100).round(1)
-
-        fig1 = px.bar(
-            seniority_df,
-            x='Frequency',
-            y='Seniority',
-            orientation='h',
-            title='AI Jobs by Seniority Level',
-            labels={'Frequency': 'Number of Postings'},
-            color='Frequency',
-            color_continuous_scale=[[0, '#D9E5F1'], [0.5, '#6B88A8'], [1, '#2E4A6B']],
-            text='Percentage',
-            hover_data={'Percentage': ':.1f', 'Frequency': True}
-        )
-        fig1.update_traces(texttemplate='%{text}%', textposition='outside')
-        fig1.update_layout(
-            yaxis={'categoryorder': 'total ascending', 'tickfont': dict(color='#1F2937', size=12), 'title_font': dict(color='#1F2937', size=13)},
-            height=400,
-            title_font_size=20,
-            font=dict(color='#1F2937', size=12),
-            xaxis=dict(tickfont=dict(color='#1F2937', size=12), title_font=dict(color='#1F2937', size=13)),
-            coloraxis_showscale=False
-        )
-        st.plotly_chart(fig1, use_container_width=True)
-
-        with st.expander("Seniority Keywords Used"):
-            st.markdown("""
-            - **Intern**: intern
-            - **Junior**: junior, jr., jr, entry, associate, I, II
-            - **Mid**: (default if no other seniority keyword found)
-            - **Senior**: senior, sr., sr, III, IV
-            - **Staff+**: staff, principal, distinguished
-            - **Lead/Manager**: lead, manager, head
-            - **Director+**: director, vp, chief
-            """)
-
-        # Chart 2: General vs AI-Specialized Titles
-        st.subheader("General vs AI-Specialized Titles")
-        ai_jobs_df['title_category'] = ai_jobs_df['title'].apply(categorize_title_type)
-        title_type_counts = ai_jobs_df['title_category'].value_counts()
-        title_type_df = pd.DataFrame({
-            'Title Type': title_type_counts.index,
-            'Frequency': title_type_counts.values
-        })
-        title_type_df['Percentage'] = (title_type_df['Frequency'] / len(ai_jobs_df) * 100).round(1)
-
-        fig2 = px.bar(
-            title_type_df,
-            x='Frequency',
-            y='Title Type',
-            orientation='h',
-            title='General vs AI-Specialized Job Titles',
-            labels={'Frequency': 'Number of Postings'},
-            color='Frequency',
-            color_continuous_scale=[[0, '#D9E5F1'], [0.5, '#6B88A8'], [1, '#2E4A6B']],
-            text='Percentage',
-            hover_data={'Percentage': ':.1f', 'Frequency': True}
-        )
-        fig2.update_traces(texttemplate='%{text}%', textposition='outside')
-        fig2.update_layout(
-            yaxis={'categoryorder': 'total ascending', 'tickfont': dict(color='#1F2937', size=12), 'title_font': dict(color='#1F2937', size=13)},
-            height=300,
-            title_font_size=20,
-            font=dict(color='#1F2937', size=12),
-            xaxis=dict(tickfont=dict(color='#1F2937', size=12), title_font=dict(color='#1F2937', size=13)),
-            coloraxis_showscale=False
-        )
-        st.plotly_chart(fig2, use_container_width=True)
-
-        with st.expander("Categorization Logic"):
-            st.markdown("""
-            - **AI-Specialized**: Titles mentioning specific AI keywords (GenAI, LLM, NLP, Machine Learning, Agentic AI, or AI/Artificial Intelligence)
-            - **General**: Titles without AI specialization keywords (e.g., "Data Scientist", "Senior Data Scientist")
-            """)
-
-        # Chart 3: Specific AI Specialization Breakdown
-        st.subheader("Specific AI Specialization Types")
-
-        if len(ai_jobs_df) > 0:
-            all_specializations = []
-            for title in ai_jobs_df['title']:
-                specs = extract_ai_specialization(title)
-                specific_specs = [s for s in specs if s != 'General']
-                all_specializations.extend(specific_specs)
-
-            if all_specializations:
-                spec_counts = pd.Series(all_specializations).value_counts()
-                spec_df = pd.DataFrame({
-                    'Specialization': spec_counts.index,
-                    'Frequency': spec_counts.values
-                })
-                ai_specialized_count = len(ai_jobs_df[ai_jobs_df['title_category'] == 'AI-Specialized'])
-                spec_df['Percentage'] = (spec_df['Frequency'] / ai_specialized_count * 100).round(1)
-
-                fig3 = px.bar(
-                    spec_df,
-                    x='Frequency',
-                    y='Specialization',
-                    orientation='h',
-                    title='Breakdown of AI Specialization Types',
-                    labels={'Frequency': 'Number of Job Titles'},
-                    color='Frequency',
-                    color_continuous_scale=[[0, '#D9E5F1'], [0.5, '#6B88A8'], [1, '#2E4A6B']],
-                    text='Percentage',
-                    hover_data={'Percentage': ':.1f', 'Frequency': True}
-                )
-                fig3.update_traces(texttemplate='%{text}%', textposition='outside')
-                fig3.update_layout(
-                    yaxis={'categoryorder': 'total ascending', 'tickfont': dict(color='#1F2937', size=12), 'title_font': dict(color='#1F2937', size=13)},
-                    height=350,
-                    title_font_size=20,
-                    font=dict(color='#1F2937', size=12),
-                    xaxis=dict(tickfont=dict(color='#1F2937', size=12), title_font=dict(color='#1F2937', size=13)),
-                    coloraxis_showscale=False
-                )
-                st.plotly_chart(fig3, use_container_width=True)
-
-                with st.expander("Specialization Keywords Used"):
-                    st.markdown("""
-                    - **AI**: ai, artificial intelligence
-                    - **GenAI**: genai, generative ai, gen ai
-                    - **LLM**: llm, large language model
-                    - **NLP**: nlp, natural language processing
-                    - **Agentic AI**: agentic, ai agent
-                    - **Machine Learning**: machine learning, ml
-
-                    *Note: This chart only shows AI-specialized jobs (excludes General titles). A single job can be counted in multiple categories if it mentions multiple specializations.*
-                    """)
-            else:
-                st.info("No specific AI specialization keywords found in titles")
-        else:
-            st.info("No AI-specialized jobs found")
-
-    # AI Skill Combinations
-    st.header("Most Common AI Skill Combinations")
-
-    if len(ai_jobs_df) > 0:
-        skill_pairs = Counter()
-
-        for skills_list in ai_jobs_df['ai_skills']:
-            if len(skills_list) >= 2:
-                sorted_skills = sorted(skills_list)
-                for i in range(len(sorted_skills)):
-                    for j in range(i + 1, len(sorted_skills)):
-                        skill_pairs[(sorted_skills[i], sorted_skills[j])] += 1
-
-        if skill_pairs:
-            top_pairs = skill_pairs.most_common(10)
-            pairs_df = pd.DataFrame(
-                [(f"{pair[0]} + {pair[1]}", count) for pair, count in top_pairs],
-                columns=['Skill Combination', 'Frequency']
-            )
-            pairs_df['Percentage'] = (pairs_df['Frequency'] / len(ai_jobs_df) * 100).round(1)
-
-            fig = px.bar(
-                pairs_df,
-                x='Frequency',
-                y='Skill Combination',
-                orientation='h',
-                title='Top 10 AI Skill Pairs',
-                labels={'Frequency': 'Number of Jobs'},
-                color='Frequency',
-                color_continuous_scale=[[0, '#E3EBF3'], [0.5, '#7A95B0'], [1, '#3B5F7F']],
-                text='Percentage'
-            )
-            fig.update_traces(texttemplate='%{text}%', textposition='outside')
-            fig.update_layout(
-                yaxis={'categoryorder': 'total ascending', 'tickfont': dict(color='#1F2937', size=12), 'title_font': dict(color='#1F2937', size=13)},
-                height=400,
-                title_font_size=20,
-                font=dict(color='#1F2937', size=12),
-                xaxis=dict(tickfont=dict(color='#1F2937', size=12), title_font=dict(color='#1F2937', size=13)),
-                coloraxis_showscale=False
-            )
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.info("No skill combinations found (jobs have only single AI skills)")
-
-    # Skill Depth Analysis
-    st.header("AI Skill Depth Analysis")
-
-    if len(ai_jobs_df) > 0:
-        skill_depth_bins = pd.cut(
-            ai_jobs_df['ai_skill_count'],
-            bins=[1, 3, 6, 11, float('inf')],
-            labels=['1-2 skills', '3-5 skills', '6-10 skills', '11+ skills'],
-            right=False
-        )
-        depth_counts = skill_depth_bins.value_counts().sort_index()
-
-        depth_df = pd.DataFrame({
-            'Skill Range': depth_counts.index,
-            'Number of Jobs': depth_counts.values
-        })
-        depth_df['Percentage'] = (depth_df['Number of Jobs'] / len(ai_jobs_df) * 100).round(1)
-
+    with chart_col1:
         fig = px.bar(
-            depth_df,
-            x='Number of Jobs',
-            y='Skill Range',
+            ai_skills_df,
+            x='Frequency',
+            y='Skill',
             orientation='h',
-            title='Distribution of AI Skill Requirements',
-            labels={'Number of Jobs': 'Number of Postings'},
-            color='Number of Jobs',
+            title='Top 10 AI Skills in Data Science Jobs (% of all jobs)',
+            labels={'Frequency': 'Number of Job Postings'},
+            color='Frequency',
             color_continuous_scale=[[0, '#D9E5F1'], [0.5, '#6B88A8'], [1, '#2E4A6B']],
             text='Percentage'
         )
         fig.update_traces(texttemplate='%{text}%', textposition='outside')
         fig.update_layout(
             yaxis={'categoryorder': 'total ascending', 'tickfont': dict(color='#1F2937', size=12), 'title_font': dict(color='#1F2937', size=13)},
-            height=300,
-            title_font_size=20,
-            font=dict(color='#1F2937', size=12),
-            xaxis=dict(tickfont=dict(color='#1F2937', size=12), title_font=dict(color='#1F2937', size=13)),
-            coloraxis_showscale=False
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
-    # Salary Analysis by Seniority
-    st.header("Salary Analysis: AI Skills Premium")
-
-    jobs_with_salary = ai_jobs_df[ai_jobs_df['salary_mid'].notna()].copy()
-
-    if len(jobs_with_salary) >= 20:
-        jobs_with_salary['seniority'] = jobs_with_salary['title'].apply(lambda t: normalize_job_title(t)[0])
-
-        non_ai_jobs = df[~df.index.isin(ai_jobs_df.index)]
-        non_ai_with_salary = non_ai_jobs[non_ai_jobs['salary_mid'].notna()].copy()
-
-        if len(non_ai_with_salary) >= 10:
-            non_ai_with_salary['seniority'] = non_ai_with_salary['title'].apply(lambda t: normalize_job_title(t)[0])
-
-            comparison_data = []
-            seniority_order = ['Junior', 'Mid', 'Senior', 'Staff+', 'Lead/Manager', 'Director+']
-
-            for seniority in seniority_order:
-                ai_sen = jobs_with_salary[jobs_with_salary['seniority'] == seniority]
-                non_ai_sen = non_ai_with_salary[non_ai_with_salary['seniority'] == seniority]
-
-                if len(ai_sen) >= 3 and len(non_ai_sen) >= 3:
-                    ai_median = ai_sen['salary_mid'].median()
-                    non_ai_median = non_ai_sen['salary_mid'].median()
-                    diff = ai_median - non_ai_median
-                    pct_diff = (diff / non_ai_median) * 100
-
-                    comparison_data.append({
-                        'Seniority': seniority,
-                        'AI Jobs Median': ai_median,
-                        'Non-AI Jobs Median': non_ai_median,
-                        'Difference': diff,
-                        'Pct Difference': pct_diff,
-                        'AI Sample': len(ai_sen),
-                        'Non-AI Sample': len(non_ai_sen)
-                    })
-
-            if comparison_data:
-                comparison_df = pd.DataFrame(comparison_data)
-
-                col1, col2, col3 = st.columns(3)
-
-                with col1:
-                    avg_premium = comparison_df['Pct Difference'].mean()
-                    st.metric(
-                        "Avg AI Salary Premium",
-                        f"{avg_premium:+.1f}%",
-                        help="Average salary difference for AI-skilled jobs vs non-AI jobs, controlling for seniority"
-                    )
-
-                with col2:
-                    total_ai_salary_jobs = len(jobs_with_salary)
-                    st.metric(
-                        "AI Jobs with Salary Data",
-                        total_ai_salary_jobs,
-                        f"of {len(ai_jobs_df)} total"
-                    )
-
-                with col3:
-                    total_non_ai_salary_jobs = len(non_ai_with_salary)
-                    st.metric(
-                        "Non-AI Jobs with Salary Data",
-                        total_non_ai_salary_jobs,
-                        f"of {len(non_ai_jobs)} total"
-                    )
-
-                chart_data = []
-                for _, row in comparison_df.iterrows():
-                    chart_data.append({
-                        'Seniority': row['Seniority'],
-                        'Category': 'AI Jobs',
-                        'Median Salary': row['AI Jobs Median'],
-                        'Sample Size': row['AI Sample']
-                    })
-                    chart_data.append({
-                        'Seniority': row['Seniority'],
-                        'Category': 'Non-AI Jobs',
-                        'Median Salary': row['Non-AI Jobs Median'],
-                        'Sample Size': row['Non-AI Sample']
-                    })
-
-                chart_df = pd.DataFrame(chart_data)
-
-                fig = px.bar(
-                    chart_df,
-                    x='Seniority',
-                    y='Median Salary',
-                    color='Category',
-                    barmode='group',
-                    title='Median Salary by Seniority: AI vs Non-AI Jobs',
-                    color_discrete_map={'AI Jobs': '#2E4A6B', 'Non-AI Jobs': '#8BA5C0'},
-                    hover_data={'Sample Size': True}
-                )
-
-                for _, row in comparison_df.iterrows():
-                    sen = row['Seniority']
-                    pct = row['Pct Difference']
-                    ai_median = row['AI Jobs Median']
-                    non_ai_median = row['Non-AI Jobs Median']
-                    max_salary = max(ai_median, non_ai_median)
-
-                    fig.add_annotation(
-                        x=sen,
-                        y=max_salary,
-                        text=f"{pct:+.1f}%",
-                        showarrow=False,
-                        yshift=15,
-                        font=dict(size=11, color='#1F2937', family='Arial Black')
-                    )
-
-                fig.update_layout(
-                    title_font_size=20,
-                    font=dict(color='#1F2937', size=12),
-                    xaxis=dict(
-                        categoryorder='array',
-                        categoryarray=seniority_order,
-                        tickfont=dict(color='#1F2937', size=12),
-                        title_font=dict(color='#1F2937', size=13)
-                    ),
-                    yaxis=dict(
-                        tickformat='$,.0f',
-                        tickfont=dict(color='#1F2937', size=12),
-                        title_font=dict(color='#1F2937', size=13)
-                    ),
-                    legend=dict(
-                        orientation='h',
-                        yanchor='bottom',
-                        y=1.02,
-                        xanchor='right',
-                        x=1
-                    ),
-                    height=400
-                )
-
-                st.plotly_chart(fig, use_container_width=True)
-
-                with st.expander("Detailed Salary Comparison by Seniority"):
-                    display_df = comparison_df.copy()
-                    display_df['AI Jobs Median'] = display_df['AI Jobs Median'].apply(lambda x: f"${x:,.0f}")
-                    display_df['Non-AI Jobs Median'] = display_df['Non-AI Jobs Median'].apply(lambda x: f"${x:,.0f}")
-                    display_df['Difference'] = display_df['Difference'].apply(lambda x: f"${x:+,.0f}")
-                    display_df['Pct Difference'] = display_df['Pct Difference'].apply(lambda x: f"{x:+.1f}%")
-                    display_df = display_df.rename(columns={
-                        'AI Sample': 'AI Jobs (n)',
-                        'Non-AI Sample': 'Non-AI Jobs (n)',
-                        'Pct Difference': '% Difference'
-                    })
-                    st.dataframe(display_df, use_container_width=True, hide_index=True)
-
-                    st.markdown("""
-                    **Note:** Salary data is only available for ~35% of job postings.
-                    Comparisons are made within the same seniority level to control for experience differences.
-                    """)
-            else:
-                st.info("Not enough data to compare salaries by seniority level (need at least 3 jobs in each category).")
-        else:
-            st.info(f"Not enough non-AI jobs with salary data for comparison ({len(non_ai_with_salary)} found, need at least 10).")
-    else:
-        st.info(f"Not enough AI jobs with salary data ({len(jobs_with_salary)} found, need at least 20).")
-
-    # Interactive Job Explorer
-    st.header("AI Job Explorer")
-
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        selected_skill = st.selectbox(
-            "Filter by AI Skill",
-            ["All"] + sorted(ai_skills)
-        )
-
-    with col2:
-        ai_specialization_options = ["All", "GenAI", "LLM", "NLP", "Agentic AI", "Machine Learning", "AI", "General"]
-        selected_specialization = st.selectbox(
-            "Filter by AI Specialization in Title",
-            ai_specialization_options
-        )
-
-    with col3:
-        min_skills = st.slider(
-            "Minimum AI Skills Required",
-            min_value=1,
-            max_value=int(ai_jobs_df['ai_skill_count'].max()) if len(ai_jobs_df) > 0 else 10,
-            value=1
-        )
-
-    filtered_jobs = ai_jobs_df.copy()
-
-    if selected_specialization != "All":
-        filtered_jobs = filtered_jobs[
-            filtered_jobs['title'].apply(lambda title: selected_specialization in extract_ai_specialization(title))
-        ]
-
-    if selected_skill != "All":
-        filtered_jobs = filtered_jobs[filtered_jobs['ai_skills'].apply(lambda x: selected_skill in x)]
-
-    if selected_specialization == "All":
-        filtered_jobs = filtered_jobs[filtered_jobs['ai_skill_count'] >= min_skills]
-
-    st.subheader(f"Matching Jobs ({len(filtered_jobs)} found)")
-
-    if len(filtered_jobs) > 0:
-        display_df = filtered_jobs[['title', 'company_name', 'location', 'ai_skill_count', 'ai_skills']].copy()
-        display_df['ai_skills'] = display_df['ai_skills'].apply(lambda x: ', '.join(x))
-        display_df.columns = ['Job Title', 'Company', 'Location', 'AI Skills Count', 'AI Skills']
-
-        event = st.dataframe(
-            display_df,
-            use_container_width=True,
-            height=400,
-            hide_index=True,
-            on_select="rerun",
-            selection_mode="single-row"
-        )
-
-        if event.selection and len(event.selection.rows) > 0:
-            selected_row_idx = event.selection.rows[0]
-            selected_row = filtered_jobs.iloc[selected_row_idx]
-
-            st.markdown("---")
-            st.subheader("Job Details")
-
-            with st.container(border=True):
-                st.markdown(f"### {selected_row['title']}")
-
-                col_a, col_b, col_c = st.columns(3)
-                with col_a:
-                    st.markdown(f"**Company**  \n{selected_row['company_name']}")
-                with col_b:
-                    st.markdown(f"**Location**  \n{selected_row['location']}")
-                with col_c:
-                    salary = selected_row.get('salary', 'N/A')
-                    if salary and salary != 'N/A':
-                        st.markdown(f"**Salary**  \n{salary}")
-                    else:
-                        st.markdown(f"**AI Skills**  \n{selected_row['ai_skill_count']} detected")
-
-                if selected_row['apply_options'] and len(selected_row['apply_options']) > 0:
-                    links = [f"[{opt['title']}]({opt['link']})" for opt in selected_row['apply_options'] if 'link' in opt and 'title' in opt]
-                    if links:
-                        st.markdown("**Apply via:** " + " | ".join(links))
-                elif selected_row['share_link']:
-                    st.markdown(f"**[View Job Posting]({selected_row['share_link']})**")
-
-            col1, col2 = st.columns([1, 3])
-
-            with col1:
-                with st.container(border=True):
-                    st.markdown("**AI Skills Found**")
-                    for skill in selected_row['ai_skills']:
-                        st.markdown(f"- {skill}")
-
-            with col2:
-                with st.container(border=True):
-                    st.markdown("**Job Description**")
-
-                    description = selected_row['description']
-                    highlighted_desc = highlight_skills_in_text(description, selected_row['ai_skills'])
-                    highlighted_desc = highlighted_desc.replace('\n', '  \n')
-
-                    st.markdown(highlighted_desc)
-        else:
-            st.info("Click on any row in the table above to view full job details with highlighted AI skills")
-    else:
-        st.info("No jobs match the selected filters.")
-
-# ============================================================
-# Tab 2: Jobs by Post Date
-# ============================================================
-with tab2:
-    st.header("Jobs by Post Date")
-
-    df_with_dates = df[df['posted_at_date'].notna()].copy()
-    jobs_without_date = len(df) - len(df_with_dates)
-
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("Total Jobs", len(df))
-    with col2:
-        st.metric("With Posted Date", len(df_with_dates))
-    with col3:
-        st.metric("Without Posted Date", jobs_without_date)
-
-    if len(df_with_dates) > 0:
-        date_counts = df_with_dates['posted_at_date'].dt.date.value_counts().sort_index()
-
-        fig = px.bar(
-            x=date_counts.index,
-            y=date_counts.values,
-            labels={'x': 'Posted Date', 'y': 'Number of Jobs'},
-            title=f'Job Postings Distribution by Date ({len(df_with_dates)} jobs with dates)',
-            color=date_counts.values,
-            color_continuous_scale=[[0, '#D9E5F1'], [0.5, '#6B88A8'], [1, '#2E4A6B']]
-        )
-        fig.update_layout(
-            xaxis_tickangle=-45,
             height=500,
             title_font_size=20,
             font=dict(color='#1F2937', size=12),
             xaxis=dict(tickfont=dict(color='#1F2937', size=12), title_font=dict(color='#1F2937', size=13)),
-            yaxis=dict(tickfont=dict(color='#1F2937', size=12), title_font=dict(color='#1F2937', size=13)),
             coloraxis_showscale=False
         )
         st.plotly_chart(fig, use_container_width=True)
 
-        st.subheader("Summary by Date")
-        summary_df = pd.DataFrame({
-            'Posted Date': date_counts.index,
-            'Job Count': date_counts.values
+    with chart_col2:
+        fig = px.bar(
+            all_skills_df,
+            x='Frequency',
+            y='Skill',
+            orientation='h',
+            title='Top 20 Most Mentioned Skills (% of all jobs)',
+            labels={'Frequency': 'Number of Job Postings'},
+            color='Frequency',
+            color_continuous_scale=[[0, '#D9E5F1'], [0.5, '#6B88A8'], [1, '#2E4A6B']],
+            text='Percentage'
+        )
+        fig.update_traces(texttemplate='%{text}%', textposition='outside')
+        fig.update_layout(
+            yaxis={'categoryorder': 'total ascending', 'tickfont': dict(color='#1F2937', size=12), 'title_font': dict(color='#1F2937', size=13)},
+            height=500,
+            title_font_size=20,
+            font=dict(color='#1F2937', size=12),
+            xaxis=dict(tickfont=dict(color='#1F2937', size=12), title_font=dict(color='#1F2937', size=13)),
+            coloraxis_showscale=False
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+st.header("Job Titles Requiring AI Skills")
+
+if len(ai_jobs_df) > 0:
+    ai_jobs_df['seniority'], ai_jobs_df['ai_in_title'] = zip(*ai_jobs_df['title'].apply(normalize_job_title))
+
+    st.subheader("By Seniority Level")
+    seniority_counts = ai_jobs_df['seniority'].value_counts()
+    seniority_df = pd.DataFrame({
+        'Seniority': seniority_counts.index,
+        'Frequency': seniority_counts.values
+    })
+    seniority_df['Percentage'] = (seniority_df['Frequency'] / len(ai_jobs_df) * 100).round(1)
+
+    fig1 = px.bar(
+        seniority_df,
+        x='Frequency',
+        y='Seniority',
+        orientation='h',
+        title='AI Jobs by Seniority Level',
+        labels={'Frequency': 'Number of Postings'},
+        color='Frequency',
+        color_continuous_scale=[[0, '#D9E5F1'], [0.5, '#6B88A8'], [1, '#2E4A6B']],
+        text='Percentage',
+        hover_data={'Percentage': ':.1f', 'Frequency': True}
+    )
+    fig1.update_traces(texttemplate='%{text}%', textposition='outside')
+    fig1.update_layout(
+        yaxis={'categoryorder': 'total ascending', 'tickfont': dict(color='#1F2937', size=12), 'title_font': dict(color='#1F2937', size=13)},
+        height=400,
+        title_font_size=20,
+        font=dict(color='#1F2937', size=12),
+        xaxis=dict(tickfont=dict(color='#1F2937', size=12), title_font=dict(color='#1F2937', size=13)),
+        coloraxis_showscale=False
+    )
+    st.plotly_chart(fig1, use_container_width=True)
+
+    with st.expander("Seniority Keywords Used"):
+        st.markdown("""
+        - **Intern**: intern
+        - **Junior**: junior, jr., jr, entry, associate, I, II
+        - **Mid**: (default if no other seniority keyword found)
+        - **Senior**: senior, sr., sr, III, IV
+        - **Staff+**: staff, principal, distinguished
+        - **Lead/Manager**: lead, manager, head
+        - **Director+**: director, vp, chief
+        """)
+
+    st.subheader("General vs AI-Specialized Titles")
+    ai_jobs_df['title_category'] = ai_jobs_df['title'].apply(categorize_title_type)
+    title_type_counts = ai_jobs_df['title_category'].value_counts()
+    title_type_df = pd.DataFrame({
+        'Title Type': title_type_counts.index,
+        'Frequency': title_type_counts.values
+    })
+    title_type_df['Percentage'] = (title_type_df['Frequency'] / len(ai_jobs_df) * 100).round(1)
+
+    fig2 = px.bar(
+        title_type_df,
+        x='Frequency',
+        y='Title Type',
+        orientation='h',
+        title='General vs AI-Specialized Job Titles',
+        labels={'Frequency': 'Number of Postings'},
+        color='Frequency',
+        color_continuous_scale=[[0, '#D9E5F1'], [0.5, '#6B88A8'], [1, '#2E4A6B']],
+        text='Percentage',
+        hover_data={'Percentage': ':.1f', 'Frequency': True}
+    )
+    fig2.update_traces(texttemplate='%{text}%', textposition='outside')
+    fig2.update_layout(
+        yaxis={'categoryorder': 'total ascending', 'tickfont': dict(color='#1F2937', size=12), 'title_font': dict(color='#1F2937', size=13)},
+        height=300,
+        title_font_size=20,
+        font=dict(color='#1F2937', size=12),
+        xaxis=dict(tickfont=dict(color='#1F2937', size=12), title_font=dict(color='#1F2937', size=13)),
+        coloraxis_showscale=False
+    )
+    st.plotly_chart(fig2, use_container_width=True)
+
+    with st.expander("Categorization Logic"):
+        st.markdown("""
+        - **AI-Specialized**: Titles mentioning specific AI keywords (GenAI, LLM, NLP, Machine Learning, Agentic AI, or AI/Artificial Intelligence)
+        - **General**: Titles without AI specialization keywords (e.g., "Data Scientist", "Senior Data Scientist")
+        """)
+
+    st.subheader("Specific AI Specialization Types")
+
+    all_specializations = []
+    for title in ai_jobs_df['title']:
+        specs = extract_ai_specialization(title)
+        specific_specs = [s for s in specs if s != 'General']
+        all_specializations.extend(specific_specs)
+
+    if all_specializations:
+        spec_counts = pd.Series(all_specializations).value_counts()
+        spec_df = pd.DataFrame({
+            'Specialization': spec_counts.index,
+            'Frequency': spec_counts.values
         })
-        summary_df['Percentage'] = (summary_df['Job Count'] / len(df_with_dates) * 100).round(1)
-        st.dataframe(summary_df, use_container_width=True)
+        ai_specialized_count = len(ai_jobs_df[ai_jobs_df['title_category'] == 'AI-Specialized'])
+        spec_df['Percentage'] = (spec_df['Frequency'] / ai_specialized_count * 100).round(1)
 
-        if jobs_without_date > 0:
-            with st.expander(f"About the {jobs_without_date} jobs without dates"):
-                st.write(f"""
-                **{jobs_without_date} jobs ({jobs_without_date/len(df)*100:.1f}%)** don't have posted date information.
+        fig3 = px.bar(
+            spec_df,
+            x='Frequency',
+            y='Specialization',
+            orientation='h',
+            title='Breakdown of AI Specialization Types',
+            labels={'Frequency': 'Number of Job Titles'},
+            color='Frequency',
+            color_continuous_scale=[[0, '#D9E5F1'], [0.5, '#6B88A8'], [1, '#2E4A6B']],
+            text='Percentage',
+            hover_data={'Percentage': ':.1f', 'Frequency': True}
+        )
+        fig3.update_traces(texttemplate='%{text}%', textposition='outside')
+        fig3.update_layout(
+            yaxis={'categoryorder': 'total ascending', 'tickfont': dict(color='#1F2937', size=12), 'title_font': dict(color='#1F2937', size=13)},
+            height=350,
+            title_font_size=20,
+            font=dict(color='#1F2937', size=12),
+            xaxis=dict(tickfont=dict(color='#1F2937', size=12), title_font=dict(color='#1F2937', size=13)),
+            coloraxis_showscale=False
+        )
+        st.plotly_chart(fig3, use_container_width=True)
 
-                This happens when Google's Jobs API doesn't provide a `posted_at` field for certain listings.
-                These jobs are still included in the dataset and appear in other analysis tabs.
+        with st.expander("Specialization Keywords Used"):
+            st.markdown("""
+            - **AI**: ai, artificial intelligence
+            - **GenAI**: genai, generative ai, gen ai
+            - **LLM**: llm, large language model
+            - **NLP**: nlp, natural language processing
+            - **Agentic AI**: agentic, ai agent
+            - **Machine Learning**: machine learning, ml
+
+            *Note: This chart only shows AI-specialized jobs (excludes General titles). A single job can be counted in multiple categories if it mentions multiple specializations.*
+            """)
+    else:
+        st.info("No specific AI specialization keywords found in titles")
+else:
+    st.info("No AI-specialized jobs found")
+
+st.header("Most Common AI Skill Combinations")
+
+if len(ai_jobs_df) > 0:
+    skill_pairs = Counter()
+
+    for skills_list in ai_jobs_df['ai_skills']:
+        if len(skills_list) >= 2:
+            sorted_skills = sorted(skills_list)
+            for i in range(len(sorted_skills)):
+                for j in range(i + 1, len(sorted_skills)):
+                    skill_pairs[(sorted_skills[i], sorted_skills[j])] += 1
+
+    if skill_pairs:
+        top_pairs = skill_pairs.most_common(10)
+        pairs_df = pd.DataFrame(
+            [(f"{pair[0]} + {pair[1]}", count) for pair, count in top_pairs],
+            columns=['Skill Combination', 'Frequency']
+        )
+        pairs_df['Percentage'] = (pairs_df['Frequency'] / len(ai_jobs_df) * 100).round(1)
+
+        fig = px.bar(
+            pairs_df,
+            x='Frequency',
+            y='Skill Combination',
+            orientation='h',
+            title='Top 10 AI Skill Pairs',
+            labels={'Frequency': 'Number of Jobs'},
+            color='Frequency',
+            color_continuous_scale=[[0, '#E3EBF3'], [0.5, '#7A95B0'], [1, '#3B5F7F']],
+            text='Percentage'
+        )
+        fig.update_traces(texttemplate='%{text}%', textposition='outside')
+        fig.update_layout(
+            yaxis={'categoryorder': 'total ascending', 'tickfont': dict(color='#1F2937', size=12), 'title_font': dict(color='#1F2937', size=13)},
+            height=400,
+            title_font_size=20,
+            font=dict(color='#1F2937', size=12),
+            xaxis=dict(tickfont=dict(color='#1F2937', size=12), title_font=dict(color='#1F2937', size=13)),
+            coloraxis_showscale=False
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("No skill combinations found (jobs have only single AI skills)")
+
+st.header("AI Skill Depth Analysis")
+
+if len(ai_jobs_df) > 0:
+    skill_depth_bins = pd.cut(
+        ai_jobs_df['ai_skill_count'],
+        bins=[1, 3, 6, 11, float('inf')],
+        labels=['1-2 skills', '3-5 skills', '6-10 skills', '11+ skills'],
+        right=False
+    )
+    depth_counts = skill_depth_bins.value_counts().sort_index()
+
+    depth_df = pd.DataFrame({
+        'Skill Range': depth_counts.index,
+        'Number of Jobs': depth_counts.values
+    })
+    depth_df['Percentage'] = (depth_df['Number of Jobs'] / len(ai_jobs_df) * 100).round(1)
+
+    fig = px.bar(
+        depth_df,
+        x='Number of Jobs',
+        y='Skill Range',
+        orientation='h',
+        title='Distribution of AI Skill Requirements',
+        labels={'Number of Jobs': 'Number of Postings'},
+        color='Number of Jobs',
+        color_continuous_scale=[[0, '#D9E5F1'], [0.5, '#6B88A8'], [1, '#2E4A6B']],
+        text='Percentage'
+    )
+    fig.update_traces(texttemplate='%{text}%', textposition='outside')
+    fig.update_layout(
+        yaxis={'categoryorder': 'total ascending', 'tickfont': dict(color='#1F2937', size=12), 'title_font': dict(color='#1F2937', size=13)},
+        height=300,
+        title_font_size=20,
+        font=dict(color='#1F2937', size=12),
+        xaxis=dict(tickfont=dict(color='#1F2937', size=12), title_font=dict(color='#1F2937', size=13)),
+        coloraxis_showscale=False
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+st.header("Salary Analysis: AI Skills Premium")
+
+jobs_with_salary = ai_jobs_df[ai_jobs_df['salary_mid'].notna()].copy()
+
+if len(jobs_with_salary) >= 20:
+    jobs_with_salary['seniority'] = jobs_with_salary['title'].apply(lambda t: normalize_job_title(t)[0])
+
+    non_ai_jobs = df[~df.index.isin(ai_jobs_df.index)]
+    non_ai_with_salary = non_ai_jobs[non_ai_jobs['salary_mid'].notna()].copy()
+
+    if len(non_ai_with_salary) >= 10:
+        non_ai_with_salary['seniority'] = non_ai_with_salary['title'].apply(lambda t: normalize_job_title(t)[0])
+
+        comparison_data = []
+        seniority_order = ['Junior', 'Mid', 'Senior', 'Staff+', 'Lead/Manager', 'Director+']
+
+        for seniority in seniority_order:
+            ai_sen = jobs_with_salary[jobs_with_salary['seniority'] == seniority]
+            non_ai_sen = non_ai_with_salary[non_ai_with_salary['seniority'] == seniority]
+
+            if len(ai_sen) >= 3 and len(non_ai_sen) >= 3:
+                ai_median = ai_sen['salary_mid'].median()
+                non_ai_median = non_ai_sen['salary_mid'].median()
+                diff = ai_median - non_ai_median
+                pct_diff = (diff / non_ai_median) * 100
+
+                comparison_data.append({
+                    'Seniority': seniority,
+                    'AI Jobs Median': ai_median,
+                    'Non-AI Jobs Median': non_ai_median,
+                    'Difference': diff,
+                    'Pct Difference': pct_diff,
+                    'AI Sample': len(ai_sen),
+                    'Non-AI Sample': len(non_ai_sen)
+                })
+
+        if comparison_data:
+            comparison_df = pd.DataFrame(comparison_data)
+
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
+                avg_premium = comparison_df['Pct Difference'].mean()
+                st.metric(
+                    "Avg AI Salary Premium",
+                    f"{avg_premium:+.1f}%",
+                    help="Average salary difference for AI-skilled jobs vs non-AI jobs, controlling for seniority"
+                )
+
+            with col2:
+                total_ai_salary_jobs = len(jobs_with_salary)
+                st.metric(
+                    "AI Jobs with Salary Data",
+                    total_ai_salary_jobs,
+                    f"of {len(ai_jobs_df)} total"
+                )
+
+            with col3:
+                total_non_ai_salary_jobs = len(non_ai_with_salary)
+                st.metric(
+                    "Non-AI Jobs with Salary Data",
+                    total_non_ai_salary_jobs,
+                    f"of {len(non_ai_jobs)} total"
+                )
+
+            chart_data = []
+            for _, row in comparison_df.iterrows():
+                chart_data.append({
+                    'Seniority': row['Seniority'],
+                    'Category': 'AI Jobs',
+                    'Median Salary': row['AI Jobs Median'],
+                    'Sample Size': row['AI Sample']
+                })
+                chart_data.append({
+                    'Seniority': row['Seniority'],
+                    'Category': 'Non-AI Jobs',
+                    'Median Salary': row['Non-AI Jobs Median'],
+                    'Sample Size': row['Non-AI Sample']
+                })
+
+            chart_df = pd.DataFrame(chart_data)
+
+            fig = px.bar(
+                chart_df,
+                x='Seniority',
+                y='Median Salary',
+                color='Category',
+                barmode='group',
+                title='Median Salary by Seniority: AI vs Non-AI Jobs',
+                color_discrete_map={'AI Jobs': '#2E4A6B', 'Non-AI Jobs': '#8BA5C0'},
+                hover_data={'Sample Size': True}
+            )
+
+            for _, row in comparison_df.iterrows():
+                sen = row['Seniority']
+                pct = row['Pct Difference']
+                ai_median = row['AI Jobs Median']
+                non_ai_median = row['Non-AI Jobs Median']
+                max_salary = max(ai_median, non_ai_median)
+
+                fig.add_annotation(
+                    x=sen,
+                    y=max_salary,
+                    text=f"{pct:+.1f}%",
+                    showarrow=False,
+                    yshift=15,
+                    font=dict(size=11, color='#1F2937', family='Arial Black')
+                )
+
+            fig.update_layout(
+                title_font_size=20,
+                font=dict(color='#1F2937', size=12),
+                xaxis=dict(
+                    categoryorder='array',
+                    categoryarray=seniority_order,
+                    tickfont=dict(color='#1F2937', size=12),
+                    title_font=dict(color='#1F2937', size=13)
+                ),
+                yaxis=dict(
+                    tickformat='$,.0f',
+                    tickfont=dict(color='#1F2937', size=12),
+                    title_font=dict(color='#1F2937', size=13)
+                ),
+                legend=dict(
+                    orientation='h',
+                    yanchor='bottom',
+                    y=1.02,
+                    xanchor='right',
+                    x=1
+                ),
+                height=400
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+
+            with st.expander("Detailed Salary Comparison by Seniority"):
+                display_df = comparison_df.copy()
+                display_df['AI Jobs Median'] = display_df['AI Jobs Median'].apply(lambda x: f"${x:,.0f}")
+                display_df['Non-AI Jobs Median'] = display_df['Non-AI Jobs Median'].apply(lambda x: f"${x:,.0f}")
+                display_df['Difference'] = display_df['Difference'].apply(lambda x: f"${x:+,.0f}")
+                display_df['Pct Difference'] = display_df['Pct Difference'].apply(lambda x: f"{x:+.1f}%")
+                display_df = display_df.rename(columns={
+                    'AI Sample': 'AI Jobs (n)',
+                    'Non-AI Sample': 'Non-AI Jobs (n)',
+                    'Pct Difference': '% Difference'
+                })
+                st.dataframe(display_df, use_container_width=True, hide_index=True)
+
+                st.markdown("""
+                **Note:** Salary data is only available for ~35% of job postings.
+                Comparisons are made within the same seniority level to control for experience differences.
                 """)
+        else:
+            st.info("Not enough data to compare salaries by seniority level (need at least 3 jobs in each category).")
     else:
-        st.warning("No jobs with valid posted dates found.")
+        st.info(f"Not enough non-AI jobs with salary data for comparison ({len(non_ai_with_salary)} found, need at least 10).")
+else:
+    st.info(f"Not enough AI jobs with salary data ({len(jobs_with_salary)} found, need at least 20).")
 
-# ============================================================
-# Tab 3: Skill Analysis
-# ============================================================
-with tab3:
-    st.header("Skill Requirements Analysis")
+st.header("AI Job Explorer")
 
-    jobs_with_skills = sum(1 for skills in per_job_skills if skills)
+col1, col2, col3 = st.columns(3)
 
-    col1, col2, _ = st.columns([1, 1, 1.5], gap="small")
-    with col1:
-        st.metric("Total Jobs", len(df))
-        st.caption(f"{jobs_with_skills/len(df)*100:.1f}% with skills detected")
-    with col2:
-        jobs_without_skills = len(df) - jobs_with_skills
-        st.metric("Jobs without Skills", jobs_without_skills, f"{jobs_without_skills/len(df)*100:.1f}%")
+with col1:
+    selected_skill = st.selectbox(
+        "Filter by AI Skill",
+        ["All"] + sorted(ai_skills)
+    )
 
-    st.markdown("---")
+with col2:
+    ai_specialization_options = ["All", "GenAI", "LLM", "NLP", "Agentic AI", "Machine Learning", "AI", "General"]
+    selected_specialization = st.selectbox(
+        "Filter by AI Specialization in Title",
+        ai_specialization_options
+    )
 
-    if skill_counts:
-        st.subheader("Skills by Category")
+with col3:
+    min_skills = st.slider(
+        "Minimum AI Skills Required",
+        min_value=1,
+        max_value=int(ai_jobs_df['ai_skill_count'].max()) if len(ai_jobs_df) > 0 else 10,
+        value=1
+    )
 
-        category_columns = st.columns(2, gap="medium")
-        for index, (category, skills) in enumerate(keyword_categories.items()):
-            with category_columns[index % 2]:
-                with st.expander(f"{category} ({len(skills)} skills)"):
-                    category_counts = {skill: skill_counts.get(skill, 0) for skill in skills if skill_counts.get(skill, 0) > 0}
-                    if category_counts:
-                        category_df = pd.DataFrame(
-                            sorted(category_counts.items(), key=lambda x: x[1], reverse=True),
-                            columns=['Skill', 'Frequency']
-                        )
-                        category_df['Percentage'] = (category_df['Frequency'] / len(df) * 100).round(1)
-                        st.dataframe(
-                            category_df,
-                            use_container_width=True,
-                            column_config={
-                                "Percentage": st.column_config.ProgressColumn(
-                                    "Percentage",
-                                    format="%.1f%%",
-                                    min_value=0,
-                                    max_value=100,
-                                )
-                            },
-                        )
-                    else:
-                        st.info("No skills from this category detected.")
+filtered_jobs = ai_jobs_df.copy()
 
+if selected_specialization != "All":
+    filtered_jobs = filtered_jobs[
+        filtered_jobs['title'].apply(lambda title: selected_specialization in extract_ai_specialization(title))
+    ]
+
+if selected_skill != "All":
+    filtered_jobs = filtered_jobs[filtered_jobs['ai_skills'].apply(lambda x: selected_skill in x)]
+
+if selected_specialization == "All":
+    filtered_jobs = filtered_jobs[filtered_jobs['ai_skill_count'] >= min_skills]
+
+st.subheader(f"Matching Jobs ({len(filtered_jobs)} found)")
+
+if len(filtered_jobs) > 0:
+    display_df = filtered_jobs[['title', 'company_name', 'location', 'ai_skill_count', 'ai_skills']].copy()
+    display_df['ai_skills'] = display_df['ai_skills'].apply(lambda x: ', '.join(x))
+    display_df.columns = ['Job Title', 'Company', 'Location', 'AI Skills Count', 'AI Skills']
+
+    event = st.dataframe(
+        display_df,
+        use_container_width=True,
+        height=400,
+        hide_index=True,
+        on_select="rerun",
+        selection_mode="single-row"
+    )
+
+    if event.selection and len(event.selection.rows) > 0:
+        selected_row_idx = event.selection.rows[0]
+        selected_row = filtered_jobs.iloc[selected_row_idx]
+
+        st.markdown("---")
+        st.subheader("Job Details")
+
+        with st.container(border=True):
+            st.markdown(f"### {selected_row['title']}")
+
+            col_a, col_b, col_c = st.columns(3)
+            with col_a:
+                st.markdown(f"**Company**  \n{selected_row['company_name']}")
+            with col_b:
+                st.markdown(f"**Location**  \n{selected_row['location']}")
+            with col_c:
+                salary = selected_row.get('salary', 'N/A')
+                if salary and salary != 'N/A':
+                    st.markdown(f"**Salary**  \n{salary}")
+                else:
+                    st.markdown(f"**AI Skills**  \n{selected_row['ai_skill_count']} detected")
+
+            if selected_row['apply_options'] and len(selected_row['apply_options']) > 0:
+                links = [f"[{opt['title']}]({opt['link']})" for opt in selected_row['apply_options'] if 'link' in opt and 'title' in opt]
+                if links:
+                    st.markdown("**Apply via:** " + " | ".join(links))
+            elif selected_row['share_link']:
+                st.markdown(f"**[View Job Posting]({selected_row['share_link']})**")
+
+        col1, col2 = st.columns([1, 3])
+
+        with col1:
+            with st.container(border=True):
+                st.markdown("**AI Skills Found**")
+                for skill in selected_row['ai_skills']:
+                    st.markdown(f"- {skill}")
+
+        with col2:
+            with st.container(border=True):
+                st.markdown("**Job Description**")
+
+                description = selected_row['description']
+                highlighted_desc = highlight_skills_in_text(description, selected_row['ai_skills'])
+                highlighted_desc = highlighted_desc.replace('\n', '  \n')
+
+                st.markdown(highlighted_desc)
     else:
-        st.warning("No skills detected in job descriptions.")
+        st.info("Click on any row in the table above to view full job details with highlighted AI skills")
+else:
+    st.info("No jobs match the selected filters.")
 
-    st.subheader("Additional Insights")
-    col1, col2 = st.columns(2)
+st.header("Job Postings Distribution by Date")
 
-    with col1:
-        st.metric("Total Unique Companies", df['company_name'].nunique())
-        st.metric("Total Unique Locations", df['location'].nunique())
+df_with_dates = df[df['posted_at_date'].notna()].copy()
+jobs_without_date = len(df) - len(df_with_dates)
 
-    with col2:
-        schedule_counts = df['schedule_type'].value_counts()
-        if len(schedule_counts) > 0:
-            st.metric("Most Common Schedule", schedule_counts.index[0])
+if len(df_with_dates) > 0:
+    date_counts = df_with_dates['posted_at_date'].dt.date.value_counts().sort_index()
 
-        jobs_with_salary_info = df[df['salary'] != 'N/A'].shape[0]
-        st.metric("Jobs with Salary Info", f"{jobs_with_salary_info} ({jobs_with_salary_info/len(df)*100:.1f}%)")
+    fig = px.bar(
+        x=date_counts.index,
+        y=date_counts.values,
+        labels={'x': 'Posted Date', 'y': 'Number of Jobs'},
+        title=f'Job Postings Distribution by Date ({len(df_with_dates)} jobs with dates)',
+        color=date_counts.values,
+        color_continuous_scale=[[0, '#D9E5F1'], [0.5, '#6B88A8'], [1, '#2E4A6B']]
+    )
+    fig.update_layout(
+        xaxis_tickangle=-45,
+        height=500,
+        title_font_size=20,
+        font=dict(color='#1F2937', size=12),
+        xaxis=dict(tickfont=dict(color='#1F2937', size=12), title_font=dict(color='#1F2937', size=13)),
+        yaxis=dict(tickfont=dict(color='#1F2937', size=12), title_font=dict(color='#1F2937', size=13)),
+        coloraxis_showscale=False
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+    if jobs_without_date > 0:
+        st.caption(f"{jobs_without_date} jobs ({jobs_without_date/len(df)*100:.1f}%) do not have posted date information.")
+else:
+    st.warning("No jobs with valid posted dates found.")
