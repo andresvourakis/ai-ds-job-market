@@ -204,30 +204,33 @@ all_df = clean_data(all_df)
 # Date range filter
 df_with_valid_dates = all_df[all_df['posted_at_date'].notna()]
 if len(df_with_valid_dates) > 0:
-    months = sorted(df_with_valid_dates['posted_at_date'].dt.to_period('M').unique())
-    month_labels = [m.strftime('%b %Y') for m in months]
+    min_date = df_with_valid_dates['posted_at_date'].min().date()
+    max_date = df_with_valid_dates['posted_at_date'].max().date()
 
-    slider_col, _ = st.columns([1, 2])
-    with slider_col:
-        start_month, end_month = st.select_slider(
+    filter_col, _ = st.columns([1, 3])
+    with filter_col:
+        date_range = st.date_input(
             "Filter by posting date",
-            options=month_labels,
-            value=(month_labels[0], month_labels[-1]),
+            value=(min_date, max_date),
+            min_value=min_date,
+            max_value=max_date,
         )
 
-    is_full_range = (start_month == month_labels[0] and end_month == month_labels[-1])
-    if is_full_range:
-        df = all_df
+    if isinstance(date_range, tuple) and len(date_range) == 2:
+        start_date, end_date = date_range
+        is_full_range = (start_date == min_date and end_date == max_date)
+        if is_full_range:
+            df = all_df
+        else:
+            dated_mask = (
+                (all_df['posted_at_date'].notna()) &
+                (all_df['posted_at_date'].dt.date >= start_date) &
+                (all_df['posted_at_date'].dt.date <= end_date)
+            )
+            df = all_df[dated_mask]
+            st.caption(f"Showing {len(df)} of {len(all_df)} jobs. Jobs without posting dates are excluded when filtering by date.")
     else:
-        start_period = pd.Period(start_month, freq='M')
-        end_period = pd.Period(end_month, freq='M')
-        dated_mask = (
-            (all_df['posted_at_date'].notna()) &
-            (all_df['posted_at_date'].dt.to_period('M') >= start_period) &
-            (all_df['posted_at_date'].dt.to_period('M') <= end_period)
-        )
-        df = all_df[dated_mask]
-        st.caption(f"Showing {len(df)} of {len(all_df)} jobs. Jobs without posting dates are excluded when filtering by date.")
+        df = all_df
 else:
     df = all_df
 
