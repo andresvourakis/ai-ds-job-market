@@ -205,20 +205,27 @@ all_df = clean_data(all_df)
 df_with_valid_dates = all_df[all_df['posted_at_date'].notna()]
 if len(df_with_valid_dates) > 0:
     months = sorted(df_with_valid_dates['posted_at_date'].dt.to_period('M').unique())
-    month_labels = ["All"] + [m.strftime('%b %Y') for m in months]
+    month_labels = [m.strftime('%b %Y') for m in months]
 
-    selected_month = st.pills("📅 Filter by posting month", month_labels, default="All")
+    start_month, end_month = st.select_slider(
+        "Filter by posting date",
+        options=month_labels,
+        value=(month_labels[0], month_labels[-1]),
+    )
 
-    if selected_month and selected_month != "All":
-        selected_period = pd.Period(selected_month, freq='M')
+    is_full_range = (start_month == month_labels[0] and end_month == month_labels[-1])
+    if is_full_range:
+        df = all_df
+    else:
+        start_period = pd.Period(start_month, freq='M')
+        end_period = pd.Period(end_month, freq='M')
         dated_mask = (
             (all_df['posted_at_date'].notna()) &
-            (all_df['posted_at_date'].dt.to_period('M') == selected_period)
+            (all_df['posted_at_date'].dt.to_period('M') >= start_period) &
+            (all_df['posted_at_date'].dt.to_period('M') <= end_period)
         )
         df = all_df[dated_mask]
-        st.caption(f"Showing {len(df)} of {len(all_df)} jobs for {selected_month}. Jobs without posting dates are excluded when filtering.")
-    else:
-        df = all_df
+        st.caption(f"Showing {len(df)} of {len(all_df)} jobs. Jobs without posting dates are excluded when filtering by date.")
 else:
     df = all_df
 
