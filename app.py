@@ -811,13 +811,34 @@ df_with_dates = df[df['posted_at_date'].notna()].copy()
 jobs_without_date = len(df) - len(df_with_dates)
 
 if len(df_with_dates) > 0:
-    date_counts = df_with_dates['posted_at_date'].dt.date.value_counts().sort_index()
+    min_date = df_with_dates['posted_at_date'].min().date()
+    max_date = df_with_dates['posted_at_date'].max().date()
+
+    date_col1, date_col2 = st.columns([1, 3])
+    with date_col1:
+        date_range = st.date_input(
+            "Filter by date range",
+            value=(min_date, max_date),
+            min_value=min_date,
+            max_value=max_date,
+        )
+
+    if isinstance(date_range, tuple) and len(date_range) == 2:
+        start_date, end_date = date_range
+        filtered_dates = df_with_dates[
+            (df_with_dates['posted_at_date'].dt.date >= start_date) &
+            (df_with_dates['posted_at_date'].dt.date <= end_date)
+        ]
+    else:
+        filtered_dates = df_with_dates
+
+    date_counts = filtered_dates['posted_at_date'].dt.date.value_counts().sort_index()
 
     fig = px.bar(
         x=date_counts.index,
         y=date_counts.values,
         labels={'x': 'Posted Date', 'y': 'Number of Jobs'},
-        title=f'Job Postings Distribution by Date ({len(df_with_dates)} jobs with dates)',
+        title=f'Job Postings Distribution by Date ({len(filtered_dates)} jobs)',
         color=date_counts.values,
         color_continuous_scale=[[0, '#D9E5F1'], [0.5, '#6B88A8'], [1, '#2E4A6B']]
     )
@@ -832,7 +853,7 @@ if len(df_with_dates) > 0:
     )
     st.plotly_chart(fig, use_container_width=True)
 
-    if jobs_without_date > 0:
-        st.caption(f"{jobs_without_date} jobs ({jobs_without_date/len(df)*100:.1f}%) do not have posted date information.")
+    st.caption(f"Based on {len(df_with_dates)} jobs with posting dates ({len(df_with_dates)/len(df)*100:.0f}% of total). "
+               f"{jobs_without_date} jobs ({jobs_without_date/len(df)*100:.0f}%) do not have date information from the source.")
 else:
     st.warning("No jobs with valid posted dates found.")
