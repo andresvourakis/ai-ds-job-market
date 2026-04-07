@@ -246,7 +246,7 @@ with col5:
     avg_ai_skills = ai_jobs_df['ai_skill_count'].mean() if len(ai_jobs_df) > 0 else 0
     st.metric("Avg AI Skills per Job", f"{avg_ai_skills:.1f}")
 
-st.header("Top Skills in Demand in Data Science Jobs")
+st.header("Top Skills in Demand")
 
 ai_skill_counts_sorted = sorted(
     [(skill, skill_counts.get(skill, 0)) for skill in ai_skills if skill != 'AI'],
