@@ -204,7 +204,7 @@ all_df = clean_data(all_df)
 # Date range filter
 df_with_valid_dates = all_df[all_df['posted_at_date'].notna()]
 if len(df_with_valid_dates) > 0:
-    months = df_with_valid_dates['posted_at_date'].dt.to_period('M').unique().sort_values()
+    months = sorted(df_with_valid_dates['posted_at_date'].dt.to_period('M').unique())
     month_labels = ["All"] + [m.strftime('%b %Y') for m in months]
 
     selected_month = st.pills("📅 Filter by posting month", month_labels, default="All")
