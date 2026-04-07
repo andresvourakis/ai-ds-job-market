@@ -919,13 +919,6 @@ with tab3:
                     else:
                         st.info("No skills from this category detected.")
 
-        st.subheader("All Skills Detected")
-        all_skills_df = pd.DataFrame(
-            skill_counts.most_common(),
-            columns=['Skill', 'Frequency']
-        )
-        all_skills_df['Percentage'] = (all_skills_df['Frequency'] / len(df) * 100).round(1)
-        st.dataframe(all_skills_df, use_container_width=True)
     else:
         st.warning("No skills detected in job descriptions.")
 
