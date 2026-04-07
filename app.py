@@ -198,8 +198,43 @@ def process_jobs(jobs_list):
     df['posted_at_date'] = pd.to_datetime(df['posted_at'], errors='coerce')
     return df
 
-df = process_jobs(jobs)
-df = clean_data(df)
+all_df = process_jobs(jobs)
+all_df = clean_data(all_df)
+
+# Date range filter
+df_with_valid_dates = all_df[all_df['posted_at_date'].notna()]
+if len(df_with_valid_dates) > 0:
+    min_date = df_with_valid_dates['posted_at_date'].min().date()
+    max_date = df_with_valid_dates['posted_at_date'].max().date()
+
+    filter_col1, filter_col2 = st.columns([1, 3])
+    with filter_col1:
+        date_range = st.date_input(
+            "Filter by posting date",
+            value=(min_date, max_date),
+            min_value=min_date,
+            max_value=max_date,
+        )
+
+    if isinstance(date_range, tuple) and len(date_range) == 2:
+        start_date, end_date = date_range
+        is_full_range = (start_date == min_date and end_date == max_date)
+        if is_full_range:
+            df = all_df
+        else:
+            dated_mask = (
+                (all_df['posted_at_date'].notna()) &
+                (all_df['posted_at_date'].dt.date >= start_date) &
+                (all_df['posted_at_date'].dt.date <= end_date)
+            )
+            df = all_df[dated_mask]
+    else:
+        df = all_df
+else:
+    df = all_df
+
+if not (len(df) == len(all_df)):
+    st.caption(f"Showing {len(df)} of {len(all_df)} jobs. Jobs without posting dates are excluded when filtering by date.")
 
 # Extract skills once for the entire app
 @st.cache_data
@@ -807,38 +842,17 @@ else:
 
 st.header("Job Postings Distribution by Date")
 
-df_with_dates = df[df['posted_at_date'].notna()].copy()
-jobs_without_date = len(df) - len(df_with_dates)
+all_df_with_dates = all_df[all_df['posted_at_date'].notna()].copy()
+all_jobs_without_date = len(all_df) - len(all_df_with_dates)
 
-if len(df_with_dates) > 0:
-    min_date = df_with_dates['posted_at_date'].min().date()
-    max_date = df_with_dates['posted_at_date'].max().date()
-
-    date_col1, date_col2 = st.columns([1, 3])
-    with date_col1:
-        date_range = st.date_input(
-            "Filter by date range",
-            value=(min_date, max_date),
-            min_value=min_date,
-            max_value=max_date,
-        )
-
-    if isinstance(date_range, tuple) and len(date_range) == 2:
-        start_date, end_date = date_range
-        filtered_dates = df_with_dates[
-            (df_with_dates['posted_at_date'].dt.date >= start_date) &
-            (df_with_dates['posted_at_date'].dt.date <= end_date)
-        ]
-    else:
-        filtered_dates = df_with_dates
-
-    date_counts = filtered_dates['posted_at_date'].dt.date.value_counts().sort_index()
+if len(all_df_with_dates) > 0:
+    date_counts = all_df_with_dates['posted_at_date'].dt.date.value_counts().sort_index()
 
     fig = px.bar(
         x=date_counts.index,
         y=date_counts.values,
         labels={'x': 'Posted Date', 'y': 'Number of Jobs'},
-        title=f'Job Postings Distribution by Date ({len(filtered_dates)} jobs)',
+        title=f'Job Postings Distribution by Date ({len(all_df_with_dates)} jobs)',
         color=date_counts.values,
         color_continuous_scale=[[0, '#D9E5F1'], [0.5, '#6B88A8'], [1, '#2E4A6B']]
     )
@@ -853,7 +867,7 @@ if len(df_with_dates) > 0:
     )
     st.plotly_chart(fig, use_container_width=True)
 
-    st.caption(f"Based on {len(df_with_dates)} jobs with posting dates ({len(df_with_dates)/len(df)*100:.0f}% of total). "
-               f"{jobs_without_date} jobs ({jobs_without_date/len(df)*100:.0f}%) do not have date information from the source.")
+    st.caption(f"Based on {len(all_df_with_dates)} jobs with posting dates ({len(all_df_with_dates)/len(all_df)*100:.0f}% of total). "
+               f"{all_jobs_without_date} jobs ({all_jobs_without_date/len(all_df)*100:.0f}%) do not have date information from the source.")
 else:
     st.warning("No jobs with valid posted dates found.")
