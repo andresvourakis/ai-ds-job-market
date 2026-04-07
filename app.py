@@ -207,11 +207,13 @@ if len(df_with_valid_dates) > 0:
     months = sorted(df_with_valid_dates['posted_at_date'].dt.to_period('M').unique())
     month_labels = [m.strftime('%b %Y') for m in months]
 
-    start_month, end_month = st.select_slider(
-        "Filter by posting date",
-        options=month_labels,
-        value=(month_labels[0], month_labels[-1]),
-    )
+    slider_col, _ = st.columns([1, 2])
+    with slider_col:
+        start_month, end_month = st.select_slider(
+            "Filter by posting date",
+            options=month_labels,
+            value=(month_labels[0], month_labels[-1]),
+        )
 
     is_full_range = (start_month == month_labels[0] and end_month == month_labels[-1])
     if is_full_range:
