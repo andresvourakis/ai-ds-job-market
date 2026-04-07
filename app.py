@@ -915,7 +915,18 @@ with tab3:
                             columns=['Skill', 'Frequency']
                         )
                         category_df['Percentage'] = (category_df['Frequency'] / len(df) * 100).round(1)
-                        st.dataframe(category_df, use_container_width=True)
+                        st.dataframe(
+                            category_df,
+                            use_container_width=True,
+                            column_config={
+                                "Percentage": st.column_config.ProgressColumn(
+                                    "Percentage",
+                                    format="%.1f%%",
+                                    min_value=0,
+                                    max_value=100,
+                                )
+                            },
+                        )
                     else:
                         st.info("No skills from this category detected.")
 
