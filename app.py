@@ -146,7 +146,7 @@ def parse_salary(salary_str):
 st.set_page_config(page_title="DS/AI Job Market Analysis", layout="wide")
 
 st.title("DS/AI Job Market Analysis")
-st.markdown("Analyzing how AI has disrupted the Data Science job market")
+st.markdown("Analyzing how AI is disrupting the Data Science job market")
 
 # Load data
 data_dir = Path("data")
@@ -163,15 +163,7 @@ def load_job_data(filepath, _mtime):
 
 data = load_job_data(file_path, file_path.stat().st_mtime)
 
-# Sidebar metadata
-st.sidebar.header("Collection Info")
 metadata = data.get("search_metadata", {})
-st.sidebar.metric("Total Jobs", metadata.get("total_jobs_collected", 0))
-st.sidebar.metric("Query", metadata.get("query", "N/A"))
-st.sidebar.metric("Location", metadata.get("location", "N/A"))
-if "collection_timestamp" in metadata:
-    st.sidebar.text(f"Collected: {metadata['collection_timestamp'][:10]}")
-
 jobs = data.get("jobs", [])
 if not jobs:
     st.error("No jobs found in the selected file.")
