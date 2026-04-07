@@ -863,12 +863,11 @@ with tab3:
 
     jobs_with_skills = sum(1 for skills in per_job_skills if skills)
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
     with col1:
         st.metric("Total Jobs", len(df))
+        st.caption(f"{jobs_with_skills/len(df)*100:.1f}% with skills detected")
     with col2:
-        st.metric("Jobs with Skills Detected", jobs_with_skills)
-    with col3:
         jobs_without_skills = len(df) - jobs_with_skills
         st.metric("Jobs without Skills", jobs_without_skills, f"{jobs_without_skills/len(df)*100:.1f}%")
 
