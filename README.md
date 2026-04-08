@@ -1,15 +1,13 @@
 # DS/AI Job Market Analysis
 
-What skills do Data Scientists actually need right now? This dashboard answers that by extracting and categorizing skills from ~2,700 real job postings, with a focus on how AI is reshaping the role.
-
-Built with Streamlit, Pandas, and Plotly.
+What skills do Data Scientists actually need right now? This dashboard answers that by extracting and categorizing skills from 3K+ real job postings, with a focus on how AI is reshaping the role.
 
 ## What You'll Find
 
-- **Top skills employers are hiring for** — ranked by frequency across all postings
-- **Skills by category** — Programming, Cloud, ML/DL, AI/GenAI, and more
-- **AI disruption analysis** — what % of DS roles now require AI skills, which seniority levels are most affected, and the salary premium for AI-skilled candidates
-- **Interactive job explorer** — browse individual postings with matched skills highlighted
+- **Top skills employers are hiring for** - ranked by frequency across all postings
+- **Skills by category** - Programming, Cloud, ML/DL, AI/GenAI, and more
+- **AI disruption analysis** - what % of DS roles now require AI skills, which seniority levels are most affected, and the salary premium for AI-skilled candidates
+- **Interactive job explorer** - browse individual postings with matched skills highlighted
 
 ## Getting Started
 
@@ -36,9 +34,9 @@ Opens at `http://localhost:8501`.
 
 ## Data
 
-The dataset contains ~2,700 Data Science job postings collected via Google's Jobs API. Each posting includes title, company, location, full description, salary (when available), posting date, and schedule type.
+The dataset contains 3K+ Data Science job postings collected via Google's Jobs API. Each posting includes title, company, location, full description, salary (when available), posting date, and schedule type.
 
-The data file (`data/jobs_merged.json`) is hosted separately — see the [Releases](https://github.com/andresvourakis/ds-ai-job-market-analysis/releases) page to download it. Place it in `data/` before running the dashboard.
+The data file (`data/jobs_merged.json`) is hosted separately - see the [Releases](https://github.com/andresvourakis/ds-ai-job-market-analysis/releases) page to download it. Place it in `data/` before running the dashboard.
 
 ## How Skill Extraction Works
 
@@ -61,11 +59,11 @@ Skills are organized into 10 categories:
 
 ## Tech Stack
 
-- **[Streamlit](https://streamlit.io/)** — Dashboard framework
-- **[Pandas](https://pandas.pydata.org/)** — Data manipulation
-- **[Plotly](https://plotly.com/python/)** — Interactive charts
-- **[NLTK](https://www.nltk.org/)** — Lemmatization for keyword matching
+- **[Streamlit](https://streamlit.io/)** - Dashboard framework
+- **[Pandas](https://pandas.pydata.org/)** - Data manipulation
+- **[Plotly](https://plotly.com/python/)** - Interactive charts
+- **[NLTK](https://www.nltk.org/)** - Lemmatization for keyword matching
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT - see [LICENSE](LICENSE).
