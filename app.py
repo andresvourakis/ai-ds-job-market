@@ -238,7 +238,13 @@ with st.sidebar:
     st.divider()
 
     st.header("Resources")
-    st.markdown("Want to future proof your data science career? Check out [Future Proof DS](https://futureproofds.com).")
+    st.markdown(
+        '<div style="background-color: #e8f0fe; border-radius: 8px; padding: 14px 16px; border: 1px solid #c4d7f2;">'
+        'Want to future proof your data science career? Check out '
+        '<a href="https://futureproofds.com" target="_blank"><b>futureproofds.com</b></a>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
 # Extract skills once for the entire app
 @st.cache_data
