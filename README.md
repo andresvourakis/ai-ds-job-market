@@ -1,4 +1,4 @@
-# DS/AI Job Market Analysis
+# AI in the Data Science Job Market
 
 What skills do Data Scientists actually need right now? This dashboard answers that by extracting and categorizing skills from 3K+ real job postings, with a focus on how AI is reshaping the role.
 

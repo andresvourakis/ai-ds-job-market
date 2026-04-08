@@ -143,10 +143,9 @@ def parse_salary(salary_str):
         return min(values[:2]), max(values[:2])
 
 # Page config
-st.set_page_config(page_title="DS/AI Job Market Analysis", layout="wide")
+st.set_page_config(page_title="AI in the Data Science Job Market", layout="wide")
 
-st.title("DS/AI Job Market Analysis")
-st.markdown("Analyzing how AI is disrupting the Data Science job market")
+st.title("AI in the Data Science Job Market")
 
 # Load data
 data_dir = Path("data")
