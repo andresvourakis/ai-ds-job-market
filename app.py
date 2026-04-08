@@ -240,7 +240,7 @@ with st.sidebar:
     st.header("Resources")
     st.markdown(
         '<div style="background-color: #e8f0fe; border-radius: 8px; padding: 14px 16px; border: 1px solid #c4d7f2;">'
-        'Want to future proof your data science career? Check out '
+        'Develop the judgment, systems thinking, and applied AI skills that keep data scientists ahead. '
         '<a href="https://futureproofds.com" target="_blank"><b>futureproofds.com</b></a>'
         '</div>',
         unsafe_allow_html=True,
