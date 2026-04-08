@@ -145,6 +145,15 @@ def parse_salary(salary_str):
 # Page config
 st.set_page_config(page_title="DS/AI Job Market Analysis", layout="wide")
 
+st.markdown(
+    '<div style="display: flex; justify-content: center;">'
+    '<div style="background-color: #fff9db; border-radius: 24px; padding: 10px 28px; text-align: center; display: inline-block; border: 1px solid #f0e68c;">'
+    'Built by <a href="https://futureproofds.com" target="_blank"><b>futureproofds.com</b></a> '
+    ' | Learn the skills that actually get you hired in Data Science'
+    '</div></div>',
+    unsafe_allow_html=True,
+)
+
 st.title("DS/AI Job Market Analysis")
 st.markdown("Analyzing how AI is disrupting the Data Science job market")
 
