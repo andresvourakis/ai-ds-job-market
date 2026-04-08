@@ -4,6 +4,8 @@ Uses lemmatization for robust keyword matching.
 """
 import re
 from collections import Counter
+import nltk
+nltk.download('wordnet', quiet=True)
 from nltk.stem import WordNetLemmatizer
 
 # Initialize the WordNet lemmatizer
