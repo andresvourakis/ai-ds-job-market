@@ -19,8 +19,8 @@ What skills do Data Scientists actually need right now? This dashboard answers t
 ### Installation
 
 ```bash
-git clone https://github.com/andresvourakis/ds-ai-job-market-analysis.git
-cd ds-ai-job-market-analysis
+git clone https://github.com/andresvourakis/ai-ds-job-market.git
+cd ai-ds-job-market
 make install
 ```
 
@@ -36,7 +36,7 @@ Opens at `http://localhost:8501`.
 
 The dataset contains 3K+ Data Science job postings collected via Google's Jobs API. Each posting includes title, company, location, full description, salary (when available), posting date, and schedule type.
 
-The data file (`data/jobs_merged.json`) is hosted separately - see the [Releases](https://github.com/andresvourakis/ds-ai-job-market-analysis/releases) page to download it. Place it in `data/` before running the dashboard.
+The data file is included in the repo at `data/jobs_merged.json`.
 
 ## How Skill Extraction Works
 
