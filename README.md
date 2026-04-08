@@ -5,6 +5,8 @@
 
 What skills do Data Scientists actually need right now? This dashboard answers that by extracting and categorizing skills from thousands of real job postings, with a focus on how AI is reshaping the role.
 
+![Dashboard Preview](assets/dashboard_preview.png)
+
 ## What You'll Find
 
 - **Top skills employers are hiring for**: ranked by frequency across all postings
