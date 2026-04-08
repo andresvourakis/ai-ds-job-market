@@ -1,7 +1,7 @@
 # AI in the Data Science Job Market
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://ai-ds-job-market.streamlit.app/)
-[![Future Proof DS](https://img.shields.io/badge/Future_Proof_DS-website-blue)](https://futureproofds.com)
+<a href="https://ai-ds-job-market.streamlit.app/" target="_blank"><img src="https://static.streamlit.io/badges/streamlit_badge_black_white.svg" alt="Open in Streamlit"></a>
+<a href="https://futureproofds.com" target="_blank"><img src="https://img.shields.io/badge/Future_Proof_DS-website-blue" alt="Future Proof DS"></a>
 
 What skills do Data Scientists actually need right now? This dashboard answers that by extracting and categorizing skills from thousands of real job postings, with a focus on how AI is reshaping the role.
 
