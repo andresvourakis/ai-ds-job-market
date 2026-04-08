@@ -238,7 +238,7 @@ with st.sidebar:
     st.divider()
 
     st.header("Resources")
-    st.markdown("Want to future proof your data science career? Check out [FutureProof DS](https://futureproofds.com).")
+    st.markdown("Want to future proof your data science career? Check out [Future Proof DS](https://futureproofds.com).")
 
 # Extract skills once for the entire app
 @st.cache_data
