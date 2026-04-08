@@ -1,21 +1,15 @@
 # DS/AI Job Market Analysis
 
-An interactive dashboard that analyzes how AI has disrupted the Data Science job market. Built with Streamlit, it extracts skills from Data Science job postings using NLP to reveal how AI skills have reshaped what employers are looking for.
+What skills do Data Scientists actually need right now? This dashboard answers that by extracting and categorizing skills from ~2,700 real job postings, with a focus on how AI is reshaping the role.
 
-## Features
+Built with Streamlit, Pandas, and Plotly.
 
-**Job Market Overview**
-- Job posting distribution by date
-- Top 20 most in-demand skills with frequency analysis
-- Skills broken down by category (Programming Languages, Cloud Platforms, AI/GenAI, etc.)
+## What You'll Find
 
-**AI Disruption Analysis**
-- How many Data Science jobs now require AI skills
-- Seniority-level breakdown of AI skill demand
-- General Data Scientist vs AI-specialized titles
-- Salary premium for AI-skilled Data Scientists vs those without
-- Most common AI skill combinations appearing in job postings
-- Interactive job explorer with skill highlighting in descriptions
+- **Top skills employers are hiring for** — ranked by frequency across all postings
+- **Skills by category** — Programming, Cloud, ML/DL, AI/GenAI, and more
+- **AI disruption analysis** — what % of DS roles now require AI skills, which seniority levels are most affected, and the salary premium for AI-skilled candidates
+- **Interactive job explorer** — browse individual postings with matched skills highlighted
 
 ## Getting Started
 
@@ -38,20 +32,17 @@ make install
 make run
 ```
 
-The dashboard will open at `http://localhost:8501`.
+Opens at `http://localhost:8501`.
 
 ## Data
 
-The dashboard reads from `data/jobs_merged.json`, which contains job postings collected via Google's Jobs API. Each posting includes:
+The dataset contains ~2,700 Data Science job postings collected via Google's Jobs API. Each posting includes title, company, location, full description, salary (when available), posting date, and schedule type.
 
-- Job title, company, and location
-- Full job description
-- Salary information (when available)
-- Posting date and schedule type
+The data file (`data/jobs_merged.json`) is hosted separately — see the [Releases](https://github.com/andresvourakis/ds-ai-job-market-analysis/releases) page to download it. Place it in `data/` before running the dashboard.
 
 ## How Skill Extraction Works
 
-Skills are identified by matching job descriptions against a curated set of ~230 keyword groups defined in `analyse_job_market.py`. Each group maps variations of a skill to a canonical name (e.g., "PostgreSQL", "psql" → "SQL"). Both original and lemmatized forms are matched to handle plurals and word variations (e.g., "AI Agents" ↔ "AI Agent").
+Job descriptions are matched against ~230 curated keyword groups in `analyse_job_market.py`. Each group maps variations of a skill to a canonical name (e.g., "PostgreSQL", "psql" → "SQL"). Both original and NLTK-lemmatized forms are matched to handle plurals and word variations.
 
 Skills are organized into 10 categories:
 
@@ -70,11 +61,11 @@ Skills are organized into 10 categories:
 
 ## Tech Stack
 
-- **[Streamlit](https://streamlit.io/)** — Web framework
+- **[Streamlit](https://streamlit.io/)** — Dashboard framework
 - **[Pandas](https://pandas.pydata.org/)** — Data manipulation
-- **[Plotly](https://plotly.com/python/)** — Interactive visualizations
+- **[Plotly](https://plotly.com/python/)** — Interactive charts
 - **[NLTK](https://www.nltk.org/)** — Lemmatization for keyword matching
 
 ## License
 
-This project is open source. See [LICENSE](LICENSE) for details.
+MIT — see [LICENSE](LICENSE).

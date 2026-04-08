@@ -1,2 +1,9 @@
 .env
 __pycache__/
+*.pyc
+.claude/
+.DS_Store
+dist/
+*.egg-info/
+.venv/
+.streamlit/secrets.toml

@@ -15,10 +15,9 @@ make run       # Run the dashboard
 
 ## Architecture
 
-- **app.py** — Main Streamlit dashboard: job posting trends by date, skill frequency analysis (top 20 + by category), summary metrics. Uses `@st.cache_data` for caching.
+- **app.py** — Main Streamlit dashboard: job posting trends, skill frequency analysis (top 20 + by category), AI disruption analysis (seniority breakdown, salary comparison, skill combinations), interactive job explorer with skill highlighting, summary metrics. Uses `@st.cache_data` for caching.
 - **analyse_job_market.py** — Core business logic: skill extraction, data deduplication, keyword definitions.
-- **pages/1_AI_Skills_Analysis.py** — AI-focused analysis: seniority breakdown, AI specialization types, salary comparison (AI vs non-AI), skill combinations, interactive job explorer with skill highlighting.
-- **data/jobs_merged.json** — Dataset (~30MB, ~2,700 jobs) with title, company, location, description, and metadata.
+- **data/jobs_merged.json** — Dataset (~30MB, ~2,700 jobs) with title, company, location, description, and metadata. Hosted externally (see Releases).
 - **.streamlit/config.toml** — Theme configuration (blue/gray color scheme).
 
 ## Key Concepts

@@ -58,44 +58,6 @@ keyword_groups = [
     ('Agents SDK', 'OpenAI Agents SDK'), ('AutoML', ), ('Foundation Models')
 ]
 
-keyword_variations = [
-    ('Python', 'Python3'), ('R',), ('SQL',),
-    ('Java',), ('Scala',), ('Julia',), ('C++',), ('C#',), ('MATLAB',), ('SAS',),
-    ('SQL Server',), ('PostgreSQL',), ('MySQL',), ('NoSQL',), ('BigQuery', 'Google BigQuery'),
-    ('Amazon S3',), ('Amazon Redshift',), ('Snowflake',), ('Teradata',),
-    ('HBase',), ('Cassandra',), ('MongoDB',), ('Redis',), ('Azure Data Lake',),
-    ('ETL', 'ELT'), ('Databricks',), ('Spark', 'Apache Spark', 'PySpark'),
-    ('Hadoop',), ('Kafka',), ('Airflow',), ('Luigi',), ('Alteryx',), ('KNIME',),
-    ('Tableau', 'Tableau Desktop', 'Tableau Server'), ('PowerBI', 'Power BI'),
-    ('Looker',), ('Looker Studio',), ('Google Sheets', 'Google Spreadsheets'),
-    ('Excel', 'Microsoft Excel', 'Excel VBA', 'Spreadsheets'), ('D3.js',),
-    ('Plotly',), ('ggplot', 'ggplot2'), ('matplotlib',), ('Seaborn',), ('QlikView',),
-    ('MicroStrategy',),
-    ('TensorFlow',), ('Pytorch',), ('Keras',), ('Scikit-learn',), ('XGBoost',),
-    ('LightGBM',), ('H2O.ai',), ('CatBoost',), ('Spark MLlib',),
-    ('Hadoop',), ('Spark',), ('Hive',), ('Flink',), ('Storm',), ('Presto',),
-    ('GCP', 'Google Cloud Platform', 'Google Cloud'), ('AWS', 'Amazon Web Services'),
-    ('Azure',), ('Google Cloud AI Platform',), ('IBM Watson',), ('Azure Machine Learning',),
-    ('RStudio',), ('Jupyter Notebook',), ('Zeppelin Notebooks',), ('Anaconda', 'Conda'),
-    ('Visual Studio Code',),
-    ('Git', 'GitHub'), ('Bitbucket',), ('GitLab',),
-    ('Docker',), ('Kubernetes',), ('Jenkins',), ('MLflow',), ('TensorBoard',),
-    ('Model Deployment',), ('Model Monitoring',),
-    ('Machine Learning', 'ML'), ('A/B Testing', 'experiments', 'Experimental Design', 'A/B Test', 'A/B'),
-    ('Statistical Models',), ('GenAI',), ('ChatGPT', 'GPT-3', 'GPT-4'),
-    ('Deep Learning', 'DL'), ('NLP', 'Natural Language Processing'),
-    ('AI', 'Artificial Intelligence'), ('LLMs', 'Large Language Models'),
-    ('Semantic Layer', 'Semantic Model', 'Semantic Modeling', 'Semantic Layer Model'),
-    ('Agentic Analytics', 'Agent-Based Analytics', 'Agent Based Analytics', 'Agent-driven Analytics', 'Agent Driven Analytics'),
-    ('Ontology', 'Ontologies'),
-    ('Context Engineering', 'Context Design', 'Context Management', 'Prompt Context Engineering'),
-    ('AI Workflow', 'AI Workflows', 'LLM Workflow', 'LLM Workflows', 'GenAI Workflow', 'GenAI Workflows'),
-    ('Claude Code',),
-    ('Codex', 'OpenAI Codex'),
-    ('Supervised Learning',), ('Unsupervised Learning',), ('Reinforcement Learning',),
-    ('Feature Engineering',), ('Transfer Learning',)
-]
-
 # ============================================================================
 # KEYWORD_CATEGORIES: Granular skill organization
 # ============================================================================
@@ -169,53 +131,6 @@ keyword_categories = {
     ]
 }
 
-#===========
-
-# Define the custom function
-def format_title(title):
-    """Categorize job titles into standard categories"""
-    if 'Data Scien' in title:
-        return 'Data Scientist'
-    elif 'Analyst' in title:
-        return 'Data Analyst'
-    elif 'Engineer' in title:
-        return 'Data Engineer'
-    elif 'Machine Learning' in title or 'ML Engineer' in title:
-        return 'ML Engineer'
-    else:
-        return 'Other'
-
-# Define the custom function
-def format_experience_level(experience_level):
-    if 'mid_senior' in experience_level:
-        return 'Mid-Senior'
-    elif 'entry' in experience_level:
-        return 'Entry'
-    else:
-        return experience_level
-
-def lemmatize_keyword_groups(keyword_groups):
-    # Lemmatize keywords and prepare the patterns
-    keyword_patterns = {}
-    for group in keyword_groups:
-        lemmatized_keywords = [' '.join([lemmatizer.lemmatize(word.lower()) for word in keyword.split()]) for keyword in group]
-        first_keyword = group[0]
-        pattern = r'\b(' + '|'.join(re.escape(keyword) for keyword in lemmatized_keywords) + r')\b'
-        keyword_patterns[first_keyword] = pattern
-
-    return keyword_patterns
-
-def lemmatize_keyword_variations(keyword_variations):
-    # Lemmatize keywords and prepare the patterns
-    keyword_patterns = {}
-    for variations in keyword_variations:
-        first_keyword = variations[0]
-        lemmatized_keywords = [' '.join([lemmatizer.lemmatize(word.lower()) for word in keyword.split()]) for keyword in variations]
-        pattern = r'\b(' + '|'.join(re.escape(keyword) for keyword in lemmatized_keywords) + r')\b'
-        keyword_patterns[first_keyword] = pattern
-
-    return keyword_patterns
-
 def clean_data(jobs_df):
     """
     Clean and filter job data.
@@ -233,16 +148,6 @@ def clean_data(jobs_df):
 
     # Drop the temporary column
     jobs_df = jobs_df.drop(columns=['description_prefix'])
-
-    return jobs_df
-
-def process_data(jobs_df):
-    """
-    Process job data and add formatted columns.
-    Adjusted for current project's data structure.
-    """
-    # Add formatted title category
-    jobs_df['title_formatted'] = jobs_df['title'].apply(format_title)
 
     return jobs_df
 
@@ -316,19 +221,3 @@ def extract_skills_per_job(descriptions, keyword_groups):
             skill_counts[skill] += 1
 
     return skill_counts, per_job_skills
-
-
-def extract_skills_with_lemmatization(descriptions, keyword_groups):
-    """
-    Extract skills from job descriptions using regex-based keyword matching.
-    Handles word variations by matching both original and lemmatized forms.
-
-    Args:
-        descriptions: List of job description strings
-        keyword_groups: List of tuples containing keyword variations
-
-    Returns:
-        Counter object with skill frequencies
-    """
-    skill_counts, _ = extract_skills_per_job(descriptions, keyword_groups)
-    return skill_counts
