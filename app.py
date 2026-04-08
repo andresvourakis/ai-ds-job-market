@@ -57,7 +57,7 @@ def normalize_job_title(title):
     elif any(x in title_lower for x in ['intern']):
         seniority = 'Intern'
 
-    ai_focused = any(x in title_lower for x in ['ai', 'artificial intelligence', 'genai', 'generative', 'llm', 'nlp', 'agentic'])
+    ai_focused = bool(re.search(r'\bai\b|\bartificial intelligence\b|\bgenai\b|\bgenerative\b|\bllm\b|\bnlp\b|\bagentic\b', title_lower))
 
     return seniority, ai_focused
 
@@ -68,18 +68,18 @@ def extract_ai_specialization(title):
     title_lower = title.lower()
     specializations = []
 
-    if 'genai' in title_lower or 'generative ai' in title_lower or 'gen ai' in title_lower:
+    if re.search(r'\bgenai\b|\bgenerative ai\b|\bgen ai\b', title_lower):
         specializations.append('GenAI')
-    if 'llm' in title_lower or 'large language model' in title_lower:
+    if re.search(r'\bllm\b|\blarge language model\b', title_lower):
         specializations.append('LLM')
-    if 'nlp' in title_lower or 'natural language processing' in title_lower:
+    if re.search(r'\bnlp\b|\bnatural language processing\b', title_lower):
         specializations.append('NLP')
-    if 'agentic' in title_lower or 'ai agent' in title_lower:
+    if re.search(r'\bagentic\b|\bai agent\b', title_lower):
         specializations.append('Agentic AI')
-    if 'machine learning' in title_lower or 'ml' in title_lower:
+    if re.search(r'\bmachine learning\b|\bml\b', title_lower):
         specializations.append('Machine Learning')
 
-    if 'ai' in title_lower or 'artificial intelligence' in title_lower:
+    if re.search(r'\bai\b|\bartificial intelligence\b', title_lower):
         specializations.append('AI')
 
     if not specializations:
