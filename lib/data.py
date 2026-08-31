@@ -1,5 +1,8 @@
+import gzip
 import json
+import os
 import re
+import urllib.request
 from pathlib import Path
 
 import pandas as pd
@@ -7,7 +10,15 @@ import streamlit as st
 
 from analyse_job_market import clean_data, extract_skills_per_job
 
+# The dataset is published weekly by the scraper repo (ds-google-job-search) to a
+# Hugging Face dataset repo. A local data/jobs_merged.json, if present, takes
+# precedence so you can develop against a specific file.
 DATA_FILE = Path("data") / "jobs_merged.json"
+DATA_URL = os.getenv(
+    "JOB_DATA_URL",
+    "https://huggingface.co/datasets/futureproofds/ai-ds-job-market/resolve/main/jobs_merged.json.gz",
+)
+DATA_TTL_SECONDS = 6 * 60 * 60  # re-download at most every 6 hours
 
 
 def parse_salary(salary_str):
@@ -50,11 +61,21 @@ def parse_salary(salary_str):
         return min(values[:2]), max(values[:2])
 
 
-@st.cache_data
-def load_job_data(filepath, _mtime):
-    with open(filepath, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-    return data
+def fetch_job_data():
+    """Uncached loader: local file if present, otherwise download from DATA_URL."""
+    if DATA_FILE.exists():
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    with urllib.request.urlopen(DATA_URL, timeout=300) as resp:
+        raw = resp.read()
+    if DATA_URL.endswith(".gz"):
+        raw = gzip.decompress(raw)
+    return json.loads(raw.decode("utf-8"))
+
+
+@st.cache_data(ttl=DATA_TTL_SECONDS, show_spinner="Loading job data...")
+def load_job_data():
+    return fetch_job_data()
 
 
 @st.cache_data
@@ -110,17 +131,18 @@ def build_ai_jobs_df(df, per_job_skills, ai_skills_set):
 def load_dashboard_data():
     """
     The shared pipeline every page starts from: load -> process -> dedupe.
-    Returns (all_df, metadata). Stops the app with an error if the data file
-    is missing or empty, so pages never render against nothing.
+    Returns (all_df, metadata). Stops the app with an error if the data cannot
+    be loaded or is empty, so pages never render against nothing.
     """
-    if not DATA_FILE.exists():
-        st.error(f"Merged job data file not found: {DATA_FILE}")
+    try:
+        data = load_job_data()
+    except Exception as exc:  # network error, bad file, ...
+        st.error(f"Could not load job data: {exc}")
         st.stop()
 
-    data = load_job_data(DATA_FILE, DATA_FILE.stat().st_mtime)
     jobs = data.get("jobs", [])
     if not jobs:
-        st.error("No jobs found in the selected file.")
+        st.error("No jobs found in the dataset.")
         st.stop()
 
     all_df = clean_data(process_jobs(jobs))

@@ -7,3 +7,4 @@ dist/
 *.egg-info/
 .venv/
 .streamlit/secrets.toml
+data/jobs_merged.json

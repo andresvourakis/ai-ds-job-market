@@ -6,7 +6,6 @@ Usage:
 """
 
 import argparse
-import json
 import re
 from collections import Counter
 from pathlib import Path
@@ -14,6 +13,7 @@ from pathlib import Path
 import pandas as pd
 import plotly.express as px
 
+from lib.data import fetch_job_data
 from analyse_job_market import (
     keyword_groups,
     keyword_categories,
@@ -92,12 +92,6 @@ def parse_salary(salary_str):
     return min(values[:2]), max(values[:2])
 
 
-def load_jobs(file_path: Path):
-    with open(file_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    return data.get("jobs", [])
-
-
 def build_dataframe(jobs):
     processed = []
     for job in jobs:
@@ -150,11 +144,7 @@ def style_horizontal(fig, height: int, left_margin: int = 160):
 def export_all(out_dir: Path, scale: int):
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    file_path = Path("data") / "jobs_merged.json"
-    if not file_path.exists():
-        raise SystemExit(f"Data file not found: {file_path}")
-
-    jobs = load_jobs(file_path)
+    jobs = fetch_job_data().get("jobs", [])
     df = build_dataframe(jobs)
     print(f"Loaded {len(df):,} jobs")
 

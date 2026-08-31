@@ -22,7 +22,7 @@ make run       # Run the dashboard
 - **analyse_job_market.py** — Core business logic: skill extraction, data deduplication, keyword definitions.
 - **lib/production.py** — Logic for the ML in Production page: production skill categories (practices vs tools), the "requires production skills" headline rule, and the calculations behind each chart. Scope rule: a skill belongs here if it would still matter when the model is XGBoost instead of an LLM; LLM-specific skills stay on the AI page.
 - **production_report.py** — Prints every number behind the ML in Production page without Streamlit (same pipeline as the dashboard). **audit_production_keywords.py** shows real matched snippets per production keyword so precision can be judged by a human; decisions are recorded in `docs/production_keyword_audit.md`.
-- **data/jobs_merged.json** — Dataset (~8.8k raw jobs, ~6.1k after dedup) with title, company, location, description, and metadata. Hosted externally (see Releases).
+- **Data** — `lib/data.py` downloads `jobs_merged.json.gz` (~9.3k raw jobs, ~6k after dedup; title, company, location, description, metadata) from the Hugging Face dataset repo `futureproofds/ai-ds-job-market`, cached with a 6-hour TTL. A local `data/jobs_merged.json` (gitignored) takes precedence for development. The dataset is produced weekly by a GitHub Actions workflow in the scraper repo (`../ds-google-job-search`, github.com/andresvourakis/ds-google-job-search); the data file is not committed to this repo.
 - **.streamlit/config.toml** — Theme configuration (blue/gray color scheme).
 
 ## Key Concepts

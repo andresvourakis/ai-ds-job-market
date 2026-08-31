@@ -46,7 +46,11 @@ Opens at `http://localhost:8501`.
 
 The dataset contains thousands of Data Science job postings collected via Google's Jobs API. Each posting includes title, company, location, full description, salary (when available), posting date, and schedule type.
 
-The data file is included in the repo at `data/jobs_merged.json`.
+The dataset is refreshed weekly by an automated scraper and published to Hugging Face:
+[futureproofds/ai-ds-job-market](https://huggingface.co/datasets/futureproofds/ai-ds-job-market).
+The dashboard downloads `jobs_merged.json.gz` from there at startup (cached for 6 hours), so
+nothing needs to be committed to this repo when the data changes. To develop against a specific
+file, drop it at `data/jobs_merged.json` and it takes precedence.
 
 ## How Skill Extraction Works
 

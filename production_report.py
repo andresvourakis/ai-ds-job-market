@@ -9,7 +9,6 @@ Usage:
 """
 
 import logging
-from pathlib import Path
 
 import streamlit  # noqa: F401  (imported first so its loggers exist, see below)
 
@@ -23,12 +22,11 @@ for _name in ("streamlit.runtime.caching.cache_data_api",
 
 from analyse_job_market import clean_data, extract_skills_per_job, keyword_groups  # noqa: E402
 from lib import production  # noqa: E402
-from lib.data import load_job_data, process_jobs  # noqa: E402
+from lib.data import fetch_job_data, process_jobs  # noqa: E402
 
 
 def load_production_df():
-    file_path = Path("data") / "jobs_merged.json"
-    data = load_job_data(file_path, file_path.stat().st_mtime)
+    data = fetch_job_data()
     df = clean_data(process_jobs(data["jobs"]))
     _, per_job_skills = extract_skills_per_job(df["description"].tolist(), keyword_groups)
     return production.build_production_jobs_df(df, per_job_skills)
