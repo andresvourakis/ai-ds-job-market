@@ -2,14 +2,23 @@ import streamlit as st
 
 from lib import production
 
+# A metric value is one big line with no wrapping, so skill names longer than
+# about ten characters get cut off on a laptop screen. Only the names that need it.
+SHORT_NAMES = {
+    "Model Deployment": "Deployment",
+    "Experiment Tracking": "Exp. Tracking",
+    "Infrastructure as Code": "IaC",
+}
+
 
 def render(prod_df):
     st.header("Key Metrics")
-    col1, col2, col3, col4, col5 = st.columns(5)
+    # Four metrics, not five: skill names need the extra width to stay readable
+    # on a laptop screen. How many jobs name a tool is covered by the next section.
+    col1, col2, col3, col4 = st.columns(4)
 
     total = len(prod_df)
     requiring = int(prod_df['requires_production'].sum())
-    naming_tool = int(prod_df['names_tool'].sum())
     pct = lambda count: (count / total * 100) if total > 0 else 0
 
     with col1:
@@ -18,20 +27,17 @@ def render(prod_df):
         st.metric("Jobs Requiring Production Skills", requiring, f"{pct(requiring):.0f}% of total jobs",
                   delta_color="off", delta_arrow="off")
     with col3:
-        st.metric("Jobs Naming a Production Tool", naming_tool, f"{pct(naming_tool):.0f}% of total jobs",
-                  delta_color="off", delta_arrow="off")
-    # Skill names like "Model Deployment" are too long for a metric value, so the
-    # share is the value and the name sits underneath it.
-    with col4:
         practices = production.skill_shares(prod_df, production.practice_skills())
         top = practices.iloc[0] if len(practices) else None
-        st.metric("Top Practice", f"{top['share']:.0f}% of jobs" if top is not None else "N/A",
-                  top['skill'] if top is not None else None, delta_color="off", delta_arrow="off")
-    with col5:
+        st.metric("Top Practice", SHORT_NAMES.get(top['skill'], top['skill']) if top is not None else "N/A",
+                  f"in {top['share']:.0f}% of jobs" if top is not None else None,
+                  delta_color="off", delta_arrow="off")
+    with col4:
         clouds = production.skill_shares(prod_df, production.CLOUD_PLATFORMS)
         top = clouds.iloc[0] if len(clouds) else None
-        st.metric("Most Requested Cloud", f"{top['share']:.0f}% of jobs" if top is not None else "N/A",
-                  top['skill'] if top is not None else None, delta_color="off", delta_arrow="off")
+        st.metric("Top Cloud Platform", top['skill'] if top is not None else "N/A",
+                  f"in {top['share']:.0f}% of jobs" if top is not None else None,
+                  delta_color="off", delta_arrow="off")
 
     with st.expander("What counts as requiring production skills"):
         st.markdown("""
