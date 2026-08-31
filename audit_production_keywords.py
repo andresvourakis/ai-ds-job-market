@@ -28,9 +28,13 @@ def variations_for(skill):
 
 def snippets_for(skill, prod_df, samples, seed=0):
     """Random context windows around the skill's variations, one per posting."""
-    # Same normalization as extraction, so the snippet shows what actually matched.
-    forms = [re.sub(r"[-/]", " ", v.lower()) for v in variations_for(skill)]
-    pattern = re.compile(r"\b(?:" + "|".join(re.escape(f) for f in sorted(forms, key=len, reverse=True)) + r")\b")
+    if skill == "Model Deployment":
+        # Matched by a pattern, not fixed phrases (see lib/production.py).
+        pattern = production.MODEL_DEPLOYMENT_PATTERN
+    else:
+        # Same normalization as extraction, so the snippet shows what actually matched.
+        forms = [re.sub(r"[-/]", " ", v.lower()) for v in variations_for(skill)]
+        pattern = re.compile(r"\b(?:" + "|".join(re.escape(f) for f in sorted(forms, key=len, reverse=True)) + r")\b")
 
     hits = prod_df[prod_df["production_skills"].apply(lambda found: skill in found)]
     rows = hits.sample(n=min(samples, len(hits)), random_state=seed)

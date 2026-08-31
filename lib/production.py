@@ -12,9 +12,36 @@ when the model is XGBoost instead of an LLM. LLM-specific skills (RAG,
 prompting, guardrails, LLM observability) stay on the AI page.
 """
 
+import re
+
 import pandas as pd
 
 from lib.titles import normalize_job_title
+
+# Model Deployment is the one practice matched by a pattern instead of fixed
+# phrases. Postings describe it with a verb plus a variable object ("deploy
+# predictive models", "deploying ML solutions", "algorithms into production",
+# "model productionalization"), so no phrase list is ever complete: fixed
+# phrases found 16% of postings, this pattern finds 35%. It is deliberately
+# narrow: the deploy verb must sit within three words of a model-like object,
+# or the object must be going into production. Bare "deploy" / "production"
+# (marketing campaigns deployed, oil production) do not match.
+_DEPLOY_OBJECT = r"(?:models?|algorithms?|solutions?|pipelines?|machine learning|ml|ai)"
+MODEL_DEPLOYMENT_PATTERN = re.compile(
+    r"deploy\w*\W+(?:\w+\W+){0,3}" + _DEPLOY_OBJECT
+    + r"|" + _DEPLOY_OBJECT + r"\W+(?:\w+\W+){0,2}(?:in|into|to)\W+production"
+    + r"|deployed\W+in\W+production"
+    + r"|productioni[sz]\w*|productionali[sz]\w*"
+    + r"|(?:ml|machine learning|ai|models?)\W+(?:\w+\W+){0,2}in\W+production",
+    re.IGNORECASE,
+)
+
+
+def mentions_model_deployment(description):
+    """True if the posting describes deploying models (see pattern above)."""
+    # Same hyphen/slash normalization as the keyword extraction.
+    text = re.sub(r"[-/]", " ", description or "")
+    return bool(MODEL_DEPLOYMENT_PATTERN.search(text))
 
 # Every category lists its practices (the work a posting asks for) and its
 # tools (the named stack) separately, because the page reports them as two
@@ -102,7 +129,12 @@ def build_production_jobs_df(df, per_job_skills):
     headline_set = headline_skills()
     tool_set = tool_skills()
 
-    found = [sorted(s for s in skills if s in production_set) for skills in per_job_skills]
+    found = []
+    for description, skills in zip(df["description"], per_job_skills):
+        skills = {s for s in skills if s in production_set}
+        if mentions_model_deployment(description):
+            skills.add("Model Deployment")
+        found.append(sorted(skills))
 
     prod_df = df.copy()
     prod_df["production_skills"] = found
