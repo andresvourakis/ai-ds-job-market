@@ -33,12 +33,16 @@ keyword_groups = [
     ('NLP', 'Natural Language Processing'), ('AI', 'Artificial Intelligence'), ('LLMs', 'Large Language Models'), ('sLMs', 'Small Language Models'),
     ('Java',), ('Scala',), ('Julia',), ('C++',), ('C#',), ('MATLAB',), ('SAS',), ('TypeScript',), ('Keras',), ('Scikit-learn',),
     ('XGBoost',), ('LightGBM',), ('H2O.ai',), ('CatBoost',), ('Hadoop',), ('Hive',), ('Kafka',), ('Flink',), ('Storm',), ('Presto',),
-    ('HBase',), ('Cassandra',), ('MongoDB',), ('Redis',), ('Azure', 'Azure Data Lake'), ('Azure Machine Learning',), ('Amazon S3',),
-    ('Amazon Redshift',), ('Google Cloud AI Platform',), ('IBM Watson',), ('D3.js',), ('Plotly',), ('QlikView',), ('Vertext AI',),
-    ('MicroStrategy',), ('Snowflake',), ('Teradata',), ('Alteryx',), ('KNIME',), ('Docker',), ('Kubernetes',),
+    ('HBase',), ('Cassandra',), ('MongoDB',), ('Redis',), ('Azure', 'Azure Data Lake'), ('Azure Machine Learning', 'Azure ML'), ('Amazon S3',),
+    ('Amazon Redshift',), ('Google Cloud AI Platform',), ('IBM Watson',), ('D3.js',), ('Plotly',), ('QlikView',), ('Vertex AI',),
+    ('MicroStrategy',), ('Snowflake',), ('Teradata',), ('Alteryx',), ('KNIME',), ('Docker',), ('Kubernetes', 'K8s'),
     ('Jenkins',), ('Git', 'GitHub', 'Bitbucket'), ('Airflow',), ('Luigi',), ('MLflow',), ('TensorBoard',),
     ('Jupyter Notebook',), ('Zeppelin Notebooks',), ('Anaconda', 'Conda'), ('Supervised Learning',), ('Unsupervised Learning',),
-    ('Reinforcement Learning',), ('Feature Engineering',), ('Model Deployment',), ('Model Monitoring',), ('Transfer Learning',),
+    ('Reinforcement Learning',), ('Feature Engineering',),
+    ('Model Deployment', 'Deploying Models', 'Deploy Models', 'Deploying Machine Learning Models', 'Deploy Machine Learning Models',
+     'Deploying ML Models', 'Deploy ML Models', 'Models into Production', 'Models in Production', 'Productionize', 'Productionalize'),
+    ('Model Monitoring', 'Monitoring Models', 'Monitor Models', 'Model Performance Monitoring'),
+    ('Transfer Learning',),
     ('Evaluation', 'Model Evaluation'), ('RAG', 'Retrieval Augmented Generation', 'Retrieval-Augmented Generation'),
     ('Vector Database', 'Vector DB', 'Embeddings Database'), ('Embeddings', 'Embedding Models'),
     ('Prompt Engineering',), ('Fine-tuning', 'Model Fine-tuning'),
@@ -57,7 +61,29 @@ keyword_groups = [
     ('Claude Code',),
     ('Codex', 'OpenAI Codex'),
     ('MCP', 'Model Context Protocol'), ('A2A', 'Agent to Agent'), ('LangGraph',), ('ADK', 'Agent Development Kit', 'Google ADK'),
-    ('Agents SDK', 'OpenAI Agents SDK'), ('AutoML', ), ('Foundation Models')
+    ('Agents SDK', 'OpenAI Agents SDK'), ('AutoML', ), ('Foundation Models',),
+
+    # --- Production / MLOps skills (ML in Production page) -----------------
+    # Practices describe the work (deploying, monitoring, CI/CD); tools name
+    # the stack. lib/production.py decides which is which and which count
+    # toward the "requires production skills" headline. Phrases are spelled
+    # the way postings write them; plurals are handled by lemmatization.
+    ('MLOps', 'ML Ops', 'Machine Learning Operations'),
+    ('Model Serving', 'Real-time Inference', 'Batch Inference'),
+    ('Production-Ready',), ('Microservices',),
+    ('Containerization', 'Containerized', 'Containerize'), ('Infrastructure as Code',),
+    ('CI/CD', 'Continuous Integration', 'Continuous Deployment', 'Continuous Delivery'),
+    ('Automated Testing', 'Unit Testing'),
+    ('Experiment Tracking',), ('Model Registry', 'Model Versioning'),
+    ('ML Pipelines', 'Machine Learning Pipelines', 'Training Pipelines', 'End-to-end Machine Learning'),
+    ('Drift Detection', 'Data Drift', 'Model Drift', 'Concept Drift'),
+    ('Model Retraining', 'Retraining'),
+    ('FastAPI',), ('Flask',), ('AWS Lambda',), ('Terraform',),
+    ('GitHub Actions',), ('GitLab CI',),
+    ('Weights & Biases', 'wandb'), ('DVC',),
+    ('Kubeflow',), ('Dagster',), ('Prefect',), ('Metaflow',),
+    ('Evidently',), ('Arize',),
+    ('SageMaker', 'Amazon SageMaker'),
 ]
 
 # ============================================================================
@@ -172,8 +198,11 @@ def _build_skill_regex(keyword_groups):
             continue
 
         for keyword in group:
-            lower = keyword.lower()
-            lemmatized = ' '.join([lemmatizer.lemmatize(w.lower()) for w in keyword.split()])
+            # Descriptions get hyphens/slashes replaced with spaces before matching
+            # (see extract_skills_per_job), so keyword forms need the same treatment
+            # or "CI/CD" and "Fine-tuning" would never match anything.
+            lower = re.sub(r'[-/]', ' ', keyword.lower())
+            lemmatized = ' '.join([lemmatizer.lemmatize(w) for w in lower.split()])
             for form in (lower, lemmatized):
                 if form not in form_to_canonical:
                     form_to_canonical[form] = canonical_name
