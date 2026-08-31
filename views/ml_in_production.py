@@ -14,12 +14,10 @@ from sections import (
     sidebar,
 )
 
-st.title("ML in Production: What Data Scientist Roles Require")
+st.title("ML in Production in the Data Science Job Market")
 st.markdown(
-    "How often Data Scientist postings ask for the skills that take a model from a notebook "
-    "to a running, monitored service: deployment, serving, containers, CI/CD, experiment tracking, "
-    "pipelines, monitoring, and the cloud platforms behind them. "
-    "Skills specific to LLMs (RAG, prompting, guardrails) are covered on the AI in Data Science page."
+    "How often Data Scientist postings ask for the skills that take a model from a notebook to a "
+    "running, monitored service. LLM-specific skills are covered on the AI in Data Science page."
 )
 
 all_df, metadata = load_dashboard_data()
