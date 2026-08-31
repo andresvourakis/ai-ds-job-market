@@ -49,7 +49,7 @@ def mentions_model_deployment(description):
 # actually named. The gap between the two is a finding in itself.
 PRODUCTION_CATEGORIES = {
     "Deployment & Serving": {
-        "practices": ["Model Deployment", "Model Serving", "Production-Ready", "Microservices"],
+        "practices": ["Model Deployment", "Model Serving", "Production-Ready"],
         "tools": ["FastAPI", "Flask", "AWS Lambda"],
     },
     "Containers & Infrastructure": {
@@ -57,7 +57,7 @@ PRODUCTION_CATEGORIES = {
         "tools": ["Docker", "Kubernetes", "Terraform"],
     },
     "CI/CD & Automation": {
-        "practices": ["CI/CD", "Automated Testing"],
+        "practices": ["CI/CD"],
         "tools": ["GitHub Actions", "Jenkins", "GitLab CI"],
     },
     "Experiment Tracking & Registry": {
@@ -70,7 +70,7 @@ PRODUCTION_CATEGORIES = {
     },
     "Monitoring & Drift": {
         "practices": ["Model Monitoring", "Drift Detection", "Model Retraining"],
-        "tools": ["Evidently", "Arize"],
+        "tools": ["Arize"],
     },
     "Cloud & ML Platforms": {
         "practices": [],

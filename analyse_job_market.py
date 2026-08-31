@@ -70,10 +70,9 @@ keyword_groups = [
     # the way postings write them; plurals are handled by lemmatization.
     ('MLOps', 'ML Ops', 'Machine Learning Operations'),
     ('Model Serving', 'Real-time Inference', 'Batch Inference'),
-    ('Production-Ready',), ('Microservices',),
+    ('Production-Ready',),
     ('Containerization', 'Containerized', 'Containerize'), ('Infrastructure as Code',),
     ('CI/CD', 'Continuous Integration', 'Continuous Deployment', 'Continuous Delivery'),
-    ('Automated Testing', 'Unit Testing'),
     ('Experiment Tracking',), ('Model Registry', 'Model Versioning'),
     ('ML Pipelines', 'Machine Learning Pipelines', 'Training Pipelines', 'End-to-end Machine Learning'),
     ('Drift Detection', 'Data Drift', 'Model Drift', 'Concept Drift'),
@@ -82,7 +81,7 @@ keyword_groups = [
     ('GitHub Actions',), ('GitLab CI',),
     ('Weights & Biases', 'wandb'), ('DVC',),
     ('Kubeflow',), ('Dagster',), ('Prefect',), ('Metaflow',),
-    ('Evidently',), ('Arize',),
+    ('Arize',),
     ('SageMaker', 'Amazon SageMaker'),
 ]
 
