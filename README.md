@@ -2,6 +2,7 @@
 
 <a href="https://ai-in-ds.streamlit.app/" target="_blank"><img src="https://static.streamlit.io/badges/streamlit_badge_black_white.svg" alt="Open in Streamlit"></a>
 <a href="https://futureproofds.com" target="_blank"><img src="https://img.shields.io/badge/Future_Proof_DS-website-blue" alt="Future Proof DS"></a>
+<a href="https://huggingface.co/datasets/futureproofds/ai-ds-job-market" target="_blank"><img src="https://img.shields.io/badge/🤗%20Dataset-Hugging%20Face-yellow" alt="Dataset on Hugging Face"></a>
 
 What skills do Data Scientists actually need right now? This dashboard answers that by extracting and categorizing skills from thousands of real job postings, with a focus on how AI is reshaping the role.
 
