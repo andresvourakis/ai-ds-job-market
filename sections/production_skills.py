@@ -56,6 +56,6 @@ def render(prod_df):
         "model productionalization"), so it is matched by a narrow pattern: the deploy verb within a few words
         of a model-like object, or an object going into production. Bare "deploy" or "production" do not match.
 
-        Each keyword was checked against real postings before being included. The full list of decisions is in
-        `docs/production_keyword_audit.md`.
+        Each keyword was checked against real postings before being included. The full list of decisions is in the
+        [keyword audit](https://github.com/andresvourakis/ai-ds-job-market/blob/main/docs/production_keyword_audit.md).
         """)

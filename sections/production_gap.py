@@ -27,11 +27,14 @@ def render(prod_df):
     # Largest practice share on top; category_orders lists categories top to bottom.
     summary = summary.sort_values('practice_share', ascending=False)
 
+    # Plotly draws the first series at the bottom of each horizontal group, so
+    # the tool series goes first to put the practice bar on top; the legend is
+    # reversed below so it still reads practice first.
     chart_df = pd.concat([
-        pd.DataFrame({'Category': summary['category'], 'Share': summary['practice_share'],
-                      'Measure': 'Asks for the practice'}),
         pd.DataFrame({'Category': summary['category'], 'Share': summary['tool_share'],
                       'Measure': 'Names a specific tool'}),
+        pd.DataFrame({'Category': summary['category'], 'Share': summary['practice_share'],
+                      'Measure': 'Asks for the practice'}),
     ])
     chart_df['Label'] = chart_df['Share'].round(1).astype(str) + '%'
 
@@ -46,7 +49,7 @@ def render(prod_df):
         labels={'Share': '% of Job Postings', 'Category': ''},
         color_discrete_map={'Asks for the practice': PRACTICE_COLOR, 'Names a specific tool': TOOL_COLOR},
         category_orders={'Category': list(summary['category']),
-                         'Measure': ['Asks for the practice', 'Names a specific tool']},
+                         'Measure': ['Names a specific tool', 'Asks for the practice']},
         text='Label',
     )
     fig.update_traces(textposition='outside')
@@ -57,7 +60,7 @@ def render(prod_df):
         xaxis=dict(tickfont=dict(color=TEXT_COLOR, size=12), title_font=dict(color=TEXT_COLOR, size=13),
                    ticksuffix='%', range=[0, chart_df['Share'].max() * 1.25]),
         yaxis=dict(tickfont=dict(color=TEXT_COLOR, size=12)),
-        legend=dict(title='', orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1),
+        legend=dict(title='', orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1, traceorder='reversed'),
     )
     st.plotly_chart(fig, width="stretch")
 
@@ -71,6 +74,8 @@ def render(prod_df):
             })
         st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
         st.markdown(
-            "Cloud & ML Platforms is tracked in its own section below: it is made of platforms, "
+            "**MLOps** is counted as a practice on its own: a job asking for MLOps is asking for the whole "
+            "discipline, so it is not tied to one area. "
+            "**Cloud & ML Platforms** is tracked in its own section below: it is made of platforms, "
             "not practices, so it has no bar here."
         )

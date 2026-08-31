@@ -8,7 +8,8 @@ from lib.text import highlight_skills_in_text
 
 def _highlight(description, skills):
     """Skill highlighting, plus the deployment pattern that has no fixed phrases."""
-    text = highlight_skills_in_text(description, skills)
+    # Markdown treats "$165,000 - $300,000" as a math block; escape the dollar signs.
+    text = highlight_skills_in_text(description.replace('$', '\\$'), skills)
     if 'Model Deployment' in skills:
         text = production.MODEL_DEPLOYMENT_PATTERN.sub(lambda m: f"**:blue[{m.group(0)}]**", text)
     return text

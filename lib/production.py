@@ -139,7 +139,9 @@ def build_production_jobs_df(df, per_job_skills):
         skills = {s for s in skills if s in production_set}
         if mentions_model_deployment(description):
             skills.add("Model Deployment")
-        found.append(sorted(skills))
+        # Practices first, then tools, so the reason a job counts is visible
+        # before the cloud names when the list is displayed.
+        found.append(sorted(skills, key=lambda s: (s in tool_set, s)))
 
     prod_df = df.copy()
     prod_df["production_skills"] = found
