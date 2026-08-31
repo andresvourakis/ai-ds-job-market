@@ -8,6 +8,7 @@ from sections import (
     production_explorer,
     production_gap,
     production_metrics,
+    production_salary,
     production_seniority,
     production_skills,
     production_trend,
@@ -34,5 +35,6 @@ production_gap.render(prod_df)
 production_skills.render(prod_df)
 production_clouds.render(prod_df)
 production_seniority.render(prod_df)
+production_salary.render(prod_df)
 production_trend.render(prod_df)
 production_explorer.render(prod_df)
