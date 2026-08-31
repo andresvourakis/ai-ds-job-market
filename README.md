@@ -29,6 +29,11 @@ cd ai-ds-job-market
 make install
 ```
 
+### Pages
+
+- **AI in Data Science**: how AI skills show up in Data Scientist postings.
+- **ML in Production**: how often postings require production skills (deploying, serving, monitoring, CI/CD) and which cloud platforms companies ask for. Keyword decisions are documented in `docs/production_keyword_audit.md`.
+
 ### Running the Dashboard
 
 ```bash

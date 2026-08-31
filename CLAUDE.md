@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A Streamlit dashboard that analyzes how AI has disrupted the Data Science job market, by extracting and categorizing skills from Data Science job postings.
+A two-page Streamlit dashboard built on Data Science job postings: how AI has disrupted the Data Science job market (skill extraction and categorization), and how often roles now require ML in Production skills (deployment, serving, monitoring, CI/CD, cloud platforms).
 
 ## Commands
 
@@ -15,7 +15,10 @@ make run       # Run the dashboard
 
 ## Architecture
 
-- **app.py** — Main Streamlit dashboard: job posting trends, skill frequency analysis (top 20 + by category), AI disruption analysis (seniority breakdown, salary comparison, skill combinations), interactive job explorer with skill highlighting, summary metrics. Uses `@st.cache_data` for caching.
+- **app.py** — Entrypoint. Registers the two pages with `st.navigation`; each page is a script in `views/`.
+- **views/ai_in_data_science.py** — The AI page: skill frequency analysis (top 20 + AI skills), AI disruption analysis (seniority breakdown, salary comparison, skill combinations), interactive job explorer with skill highlighting, summary metrics.
+- **views/ml_in_production.py** — The ML in Production page: how often Data Scientist postings require production skills (headline), practices vs named tools by area, top practices and tools, cloud platforms, seniority, monthly trend, and a job explorer limited to production jobs. Sections live in `sections/production_*.py`.
+- **lib/data.py** — Shared, cached pipeline both pages start from (`load_dashboard_data`: load -> process -> dedupe; `extract_skills_cached`).
 - **analyse_job_market.py** — Core business logic: skill extraction, data deduplication, keyword definitions.
 - **lib/production.py** — Logic for the ML in Production page: production skill categories (practices vs tools), the "requires production skills" headline rule, and the calculations behind each chart. Scope rule: a skill belongs here if it would still matter when the model is XGBoost instead of an LLM; LLM-specific skills stay on the AI page.
 - **production_report.py** — Prints every number behind the ML in Production page without Streamlit (same pipeline as the dashboard). **audit_production_keywords.py** shows real matched snippets per production keyword so precision can be judged by a human; decisions are recorded in `docs/production_keyword_audit.md`.

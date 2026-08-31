@@ -78,6 +78,11 @@ PRODUCTION_CATEGORIES = {
     },
 }
 
+# The platform category is handled differently from the rest (tracked, charted
+# on its own, never a headline trigger except for the managed ML services).
+CLOUD_CATEGORY = "Cloud & ML Platforms"
+CLOUD_PLATFORMS = PRODUCTION_CATEGORIES[CLOUD_CATEGORY]["tools"]
+
 # "MLOps" is a practice that doesn't belong to one category: a posting asking
 # for MLOps is asking for the whole discipline. It counts toward the headline
 # and is reported on its own.

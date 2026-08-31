@@ -1,8 +1,13 @@
 import json
 import re
+from pathlib import Path
 
 import pandas as pd
 import streamlit as st
+
+from analyse_job_market import clean_data, extract_skills_per_job
+
+DATA_FILE = Path("data") / "jobs_merged.json"
 
 
 def parse_salary(salary_str):
@@ -100,3 +105,28 @@ def build_ai_jobs_df(df, per_job_skills, ai_skills_set):
     ai_jobs_df['ai_skills'] = ai_jobs_df.index.map(lambda idx: ai_job_skills.get(idx, []))
     ai_jobs_df['ai_skill_count'] = ai_jobs_df['ai_skills'].apply(len)
     return ai_jobs_df
+
+
+def load_dashboard_data():
+    """
+    The shared pipeline every page starts from: load -> process -> dedupe.
+    Returns (all_df, metadata). Stops the app with an error if the data file
+    is missing or empty, so pages never render against nothing.
+    """
+    if not DATA_FILE.exists():
+        st.error(f"Merged job data file not found: {DATA_FILE}")
+        st.stop()
+
+    data = load_job_data(DATA_FILE, DATA_FILE.stat().st_mtime)
+    jobs = data.get("jobs", [])
+    if not jobs:
+        st.error("No jobs found in the selected file.")
+        st.stop()
+
+    all_df = clean_data(process_jobs(jobs))
+    return all_df, data.get("search_metadata", {})
+
+
+@st.cache_data
+def extract_skills_cached(descriptions, groups):
+    return extract_skills_per_job(descriptions, groups)
