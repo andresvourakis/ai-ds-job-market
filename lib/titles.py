@@ -13,8 +13,12 @@ def normalize_job_title(title):
         seniority = 'Senior'
     elif any(x in title_lower for x in ['staff', 'principal', 'distinguished']):
         seniority = 'Staff+'
-    elif any(x in title_lower for x in ['lead', 'manager', 'head']):
-        seniority = 'Lead/Manager'
+    elif any(x in title_lower for x in ['manager', 'head']):
+        # People managers. Checked before 'lead' so "Lead Manager" lands here.
+        seniority = 'Manager'
+    elif 'lead' in title_lower:
+        # Hands-on tech leads (Lead Data Scientist, Technical Lead), not people managers.
+        seniority = 'Tech Lead'
     elif any(x in title_lower for x in ['director', 'vp', 'chief']):
         seniority = 'Director+'
     elif any(x in title_lower for x in ['junior', 'jr.', 'jr ', 'entry', 'associate', ' i ', ' ii ']):

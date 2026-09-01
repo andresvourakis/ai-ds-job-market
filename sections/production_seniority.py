@@ -4,7 +4,7 @@ import streamlit as st
 from lib import production
 from lib.charts import style_horizontal_bar
 
-SENIORITY_ORDER = ['Intern', 'Junior', 'Mid', 'Senior', 'Staff+', 'Lead/Manager', 'Director+']
+SENIORITY_ORDER = ['Intern', 'Junior', 'Mid', 'Senior', 'Staff+', 'Tech Lead', 'Manager', 'Director+']
 
 # One solid color on purpose: every other bar chart on this page is a share of
 # all jobs with a light-to-dark ranking scale. This chart compares independent
@@ -59,6 +59,7 @@ def render(prod_df):
         - **Mid**: (default if no other seniority keyword found)
         - **Senior**: senior, sr., sr, III, IV
         - **Staff+**: staff, principal, distinguished
-        - **Lead/Manager**: lead, manager, head
+        - **Tech Lead**: lead (hands-on technical leads)
+        - **Manager**: manager, head
         - **Director+**: director, vp, chief
         """)

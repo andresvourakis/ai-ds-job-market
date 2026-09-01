@@ -46,7 +46,8 @@ def render(ai_jobs_df):
         - **Mid**: (default if no other seniority keyword found)
         - **Senior**: senior, sr., sr, III, IV
         - **Staff+**: staff, principal, distinguished
-        - **Lead/Manager**: lead, manager, head
+        - **Tech Lead**: lead (hands-on technical leads)
+        - **Manager**: manager, head
         - **Director+**: director, vp, chief
         """)
 

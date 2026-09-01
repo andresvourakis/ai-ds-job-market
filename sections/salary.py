@@ -20,7 +20,7 @@ def render(df, ai_jobs_df):
             non_ai_with_salary['seniority'] = non_ai_with_salary['title'].apply(lambda t: normalize_job_title(t)[0])
 
             comparison_data = []
-            seniority_order = ['Junior', 'Mid', 'Senior', 'Staff+', 'Lead/Manager', 'Director+']
+            seniority_order = ['Junior', 'Mid', 'Senior', 'Staff+', 'Tech Lead', 'Manager', 'Director+']
 
             for seniority in seniority_order:
                 ai_sen = jobs_with_salary[jobs_with_salary['seniority'] == seniority]
