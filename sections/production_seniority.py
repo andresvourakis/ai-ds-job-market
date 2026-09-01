@@ -60,6 +60,6 @@ def render(prod_df):
         - **Senior**: senior, sr., sr, III, IV
         - **Staff+**: staff, principal, distinguished
         - **Tech Lead**: lead (hands-on technical leads)
-        - **Manager**: manager, head
+        - **Manager**: manager, head (outranks senior: a Senior Manager is a Manager)
         - **Director+**: director, vp, chief
         """)
