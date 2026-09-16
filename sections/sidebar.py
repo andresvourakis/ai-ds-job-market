@@ -43,11 +43,12 @@ def render(all_df, metadata):
         else:
             df = all_df
 
-        st.subheader("Resources")
+        st.subheader("Free Workshops")
         st.markdown(
             '<div style="background-color: #e8f0fe; border-radius: 8px; padding: 14px 16px; border: 1px solid #c4d7f2;">'
-            'Develop the judgment, systems thinking, and applied AI skills that keep data scientists ahead. '
-            '<a href="https://futureproofds.com" target="_blank"><b>futureproofds.com</b></a>'
+            '<b>From Chat Window to AI Analyst</b><br>'
+            'Three free live workshops for data scientists, Sep 24 to Oct 8. Recordings included. '
+            '<a href="https://futureproofds.com/resources/ai-workflows-workshops?utm_source=dashboard&utm_medium=sidebar" target="_blank"><b>Register free</b></a>'
             '</div>',
             unsafe_allow_html=True,
         )
