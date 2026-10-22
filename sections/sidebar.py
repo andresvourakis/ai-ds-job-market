@@ -1,7 +1,27 @@
 import streamlit as st
 
 
-def render(all_df, metadata):
+# One promo per page: the AI page points to the AI Workflows workshops, the
+# ML in Production page to the MLOps course.
+PROMOS = {
+    "ai": {
+        "heading": "Free Workshops",
+        "title": "From Chat Window to AI Analyst",
+        "text": "Get AI to run real analysis, query your database, and answer business questions right.",
+        "url": "https://futureproofds.com/resources/ai-workflows-workshops?utm_source=dashboard&utm_medium=sidebar",
+        "cta": "Get the free workshops",
+    },
+    "mlops": {
+        "heading": "Free Course",
+        "title": "MLOps for Data Scientists",
+        "text": "Take a model from your notebook to a monitored system running in production.",
+        "url": "https://futureproofds.com/resources/mlops-for-data-scientists?utm_source=dashboard&utm_medium=sidebar",
+        "cta": "Get the free course",
+    },
+}
+
+
+def render(all_df, metadata, promo="ai"):
     """
     Render the sidebar (about, date filter, resources).
     Returns the date-filtered dataframe.
@@ -43,12 +63,13 @@ def render(all_df, metadata):
         else:
             df = all_df
 
-        st.subheader("Free Workshops")
+        p = PROMOS[promo]
+        st.subheader(p["heading"])
         st.markdown(
             '<div style="background-color: #e8f0fe; border-radius: 8px; padding: 14px 16px; border: 1px solid #c4d7f2;">'
-            '<b>From Chat Window to AI Analyst</b><br>'
-            'Get AI to run real analysis, query your database, and answer business questions right.<br>'
-            '<a href="https://futureproofds.com/resources/ai-workflows-workshops?utm_source=dashboard&utm_medium=sidebar" target="_blank"><b>Get the free workshops</b></a>'
+            f'<b>{p["title"]}</b><br>'
+            f'{p["text"]}<br>'
+            f'<a href="{p["url"]}" target="_blank"><b>{p["cta"]}</b></a>'
             '</div>',
             unsafe_allow_html=True,
         )

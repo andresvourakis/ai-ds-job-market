@@ -23,7 +23,7 @@ st.markdown(
 all_df, metadata = load_dashboard_data()
 
 # Sidebar renders + returns date-filtered df
-df = sidebar.render(all_df, metadata)
+df = sidebar.render(all_df, metadata, promo="mlops")
 
 # Same skill extraction as the AI page, then the production lens on top of it
 _, per_job_skills = extract_skills_cached(df['description'].tolist(), keyword_groups)
