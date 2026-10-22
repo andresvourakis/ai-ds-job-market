@@ -55,7 +55,7 @@ file, drop it at `data/jobs_merged.json` and it takes precedence.
 
 ## How Skill Extraction Works
 
-Job descriptions are matched against ~230 curated keyword groups in `analyse_job_market.py`. Each group maps variations of a skill to a canonical name (e.g., "PostgreSQL", "psql" → "SQL"). Both original and NLTK-lemmatized forms are matched to handle plurals and word variations.
+Job descriptions are matched against ~230 curated keyword groups in `analyse_job_market.py`. Each group maps variations of a skill to a canonical name (e.g., "PostgreSQL", "psql" → "SQL"). Both original and NLTK-lemmatized forms are matched to handle plurals and word variations. A few ambiguous words ("orchestration", "guardrails", "tracing") only count when an AI term such as "LLM" or "agent" appears next to them; see `docs/ai_keyword_audit.md`.
 
 Skills are organized into 10 categories:
 

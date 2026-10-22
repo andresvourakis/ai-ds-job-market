@@ -218,10 +218,76 @@ def _build_skill_regex(keyword_groups):
 # Pre-compile at module load (runs once)
 _skill_regex, _form_to_canonical = _build_skill_regex(keyword_groups)
 
+# ============================================================================
+# CONTEXT_RULES: ambiguous bare words that only count next to an AI term
+# ============================================================================
+# Some AI keywords are ordinary words when they stand alone. A precision audit
+# (docs/ai_keyword_audit.md, 2026-10-20) found bare "orchestration" was about
+# AI only 10 of 20 times (the rest: Airflow / Kubernetes orchestration),
+# "tracing" 12 of 20 (data lineage, blockchain, SRE tracing) and "guardrails"
+# 16 of 20 (experiment and compliance guardrails). Every correct match had an
+# unambiguous AI term nearby, so a bare form only counts when one appears
+# within CONTEXT_WINDOW characters. Qualified forms ("LLM Orchestration",
+# "AI Guardrails", "LLM Tracing") are separate, longer variants and always count.
+#
+# AI_SUPPORT_TERMS is deliberately strict: "tool", "prompt", "model" or a bare
+# "AI" are not enough ("AI/ML pipeline orchestration" is still a data pipeline).
+# Keys are matched forms (lowercased, hyphens/slashes as spaces), including the
+# lemmatized form, since either can be what the regex returns.
+AI_SUPPORT_TERMS = re.compile(
+    r'\b(?:llms?|large language models?|agents?|agentic|gen ai|genai|generative ai'
+    r'|foundation models?|rag|langchain|langgraph|langfuse|langsmith|llmops)\b',
+    re.IGNORECASE,
+)
+# Guardrails and tracing also count next to a bare "AI" and a few safety and
+# observability terms: the audit of dropped matches found real AI guardrails
+# phrased as "AI driven products ... safety guardrails", "hallucinations ...
+# guardrails", "Anthropic, Azure OpenAI ... guardrails" and "AI observability
+# ... tracing", while the false positives (experiment guardrail metrics, data
+# lineage, blockchain tracing) had none of these nearby. Orchestration keeps
+# the strict list: "AI/ML pipeline orchestration" is still Airflow.
+AI_SAFETY_TERMS = re.compile(
+    AI_SUPPORT_TERMS.pattern
+    + r'|\b(?:ai|artificial intelligence|responsible ai|rai|hallucinations?|openai|anthropic|claude|gpt|jailbreaks?)\b',
+    re.IGNORECASE,
+)
+CONTEXT_WINDOW = 100
+CONTEXT_RULES = {
+    'orchestration': AI_SUPPORT_TERMS,
+    'guardrails': AI_SAFETY_TERMS,
+    'guardrail': AI_SAFETY_TERMS,
+    'tracing': AI_SAFETY_TERMS,
+}
+
+
+def iter_skill_matches(desc):
+    """
+    Yield every keyword match in a description as
+    (canonical_name, matched_form, start, end, counted).
+
+    counted is False when the match is an ambiguous bare form (CONTEXT_RULES)
+    with no supporting AI term within CONTEXT_WINDOW characters. Offsets refer
+    to the normalized text (hyphens and slashes replaced by spaces), which has
+    the same length as the original description.
+    """
+    if not desc:
+        return
+    # Replace hyphens/slashes with spaces so "AI-powered" and "AI/ML" match
+    normalized = re.sub(r'[-/]', ' ', desc)
+    for m in _skill_regex.finditer(normalized):
+        form = m.group(0).lower()
+        counted = True
+        support = CONTEXT_RULES.get(form)
+        if support is not None:
+            window = normalized[max(0, m.start() - CONTEXT_WINDOW):m.end() + CONTEXT_WINDOW]
+            counted = bool(support.search(window))
+        yield _form_to_canonical[form], form, m.start(), m.end(), counted
+
 
 def extract_skills_per_job(descriptions, keyword_groups):
     """
-    Extract skills from job descriptions using a single pre-compiled regex.
+    Extract skills from job descriptions using a single pre-compiled regex
+    (see iter_skill_matches; ambiguous bare words follow CONTEXT_RULES).
     Returns both per-job skill sets and aggregate counts in a single pass.
 
     Args:
@@ -241,10 +307,7 @@ def extract_skills_per_job(descriptions, keyword_groups):
             per_job_skills.append(set())
             continue
 
-        # Replace hyphens/slashes with spaces so "AI-powered" and "AI/ML" match
-        normalized = re.sub(r'[-/]', ' ', desc)
-        matches = _skill_regex.findall(normalized)
-        found_skills = set(_form_to_canonical[m.lower()] for m in matches)
+        found_skills = {canonical for canonical, _, _, _, counted in iter_skill_matches(desc) if counted}
 
         per_job_skills.append(found_skills)
         for skill in found_skills:
