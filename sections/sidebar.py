@@ -47,8 +47,8 @@ def render(all_df, metadata):
         st.markdown(
             '<div style="background-color: #e8f0fe; border-radius: 8px; padding: 14px 16px; border: 1px solid #c4d7f2;">'
             '<b>From Chat Window to AI Analyst</b><br>'
-            'Three free live workshops for data scientists, Sep 24 to Oct 8. Recordings included. '
-            '<a href="https://futureproofds.com/resources/ai-workflows-workshops?utm_source=dashboard&utm_medium=sidebar" target="_blank"><b>Register free</b></a>'
+            'Get AI to run real analysis, query your database, and answer business questions right.<br>'
+            '<a href="https://futureproofds.com/resources/ai-workflows-workshops?utm_source=dashboard&utm_medium=sidebar" target="_blank"><b>Get the free workshops</b></a>'
             '</div>',
             unsafe_allow_html=True,
         )

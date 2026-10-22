@@ -6,7 +6,7 @@ from lib.titles import normalize_job_title
 
 
 def render(df, ai_jobs_df):
-    st.header("Salary Analysis: AI Skills Premium")
+    st.header("Salary: AI vs Non-AI Postings")
 
     jobs_with_salary = ai_jobs_df[ai_jobs_df['salary_mid'].notna()].copy()
 
@@ -50,9 +50,13 @@ def render(df, ai_jobs_df):
                 with col1:
                     avg_premium = comparison_df['Pct Difference'].mean()
                     st.metric(
-                        "Avg AI Salary Premium",
+                        "Avg Salary Difference",
                         f"{avg_premium:+.1f}%",
-                        help="Average salary difference for AI-skilled jobs vs non-AI jobs, controlling for seniority"
+                        help=(
+                            "Average difference in median advertised salary between AI and non-AI postings "
+                            "at the same seniority level. Most of this gap reflects which companies post AI roles: "
+                            "for the same role at the same company, advertised salaries look about the same."
+                        )
                     )
 
                 with col2:
@@ -156,8 +160,9 @@ def render(df, ai_jobs_df):
                     })
                     st.dataframe(display_df, use_container_width=True, hide_index=True)
 
-                    st.markdown("""
-                    **Note:** Salary data is only available for ~35% of job postings.
+                    salary_share = df['salary_mid'].notna().mean() * 100 if len(df) > 0 else 0
+                    st.markdown(f"""
+                    **Note:** Salary data is only available for {salary_share:.0f}% of job postings.
                     Comparisons are made within the same seniority level to control for experience differences.
                     """)
             else:
